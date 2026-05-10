@@ -1,0 +1,194 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+import 'connection.dart';
+import 'developer.dart';
+
+class LocationService {
+  static final LocationService _instance = LocationService._internal();
+  factory LocationService() => _instance;
+  LocationService._internal();
+
+  // Platform detection
+  static bool get isMobile => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+  static bool get isDesktop => !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
+
+  Future<bool> _handleLocationPermission() async {
+    // Skip permission checks on desktop
+    if (isDesktop && kDebugMode) {
+      print('📍 Desktop mode: Using mock location');
+      return true;
+    }
+
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (kDebugMode) {
+          print('Location services are disabled. Please enable the services');
+        }
+        return false;
+      }
+      
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (kDebugMode) {
+            print('Location permissions are denied');
+          }
+          return false;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        if (kDebugMode) {
+          print('Location permissions are permanently denied, we cannot request permissions.');
+        }
+        return false;
+      }
+      return true;
+    } catch (error) {
+      if (kDebugMode) {
+        print('Error checking location permissions: $error');
+      }
+      return false;
+    }
+  }
+
+  // Static method for easy access (matches your MiniHeader usage)
+  static Future<String?> getCurrentLocation() async {
+    return LocationService().getCurrentLocationInstance();
+  }
+
+  // Instance method
+  Future<String?> getCurrentLocationInstance() async {
+    try {
+      // Desktop development - return mock location
+      if (isDesktop && kDebugMode) {
+        print('📍 Using mock location for desktop development');
+        return await _getMockLocationString();
+      }
+
+      // Check connection status first
+      final connectionService = ConnectionService();
+      final isOnline = await connectionService.checkConnection();
+      
+      if (!isOnline) {
+        return 'Location Unavailable';
+      }
+
+      final hasPermission = await _handleLocationPermission();
+      if (!hasPermission) return null;
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+
+      List<Placemark>? placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks == null || placemarks.isEmpty) return null;
+
+      final place = placemarks.first;
+      final locationParts = <String>[];
+
+      if (place.locality != null && place.locality!.isNotEmpty) {
+        locationParts.add(place.locality!);
+      }
+      if (place.administrativeArea != null && place.administrativeArea!.isNotEmpty) {
+        locationParts.add(place.administrativeArea!);
+      }
+      if (place.country != null && place.country!.isNotEmpty) {
+        locationParts.add(place.country!);
+      }
+
+      return locationParts.isNotEmpty ? locationParts.join(', ') : 'Unknown Location';
+    } catch (error) {
+      if (kDebugMode) {
+        print('Error getting location: $error');
+      }
+      return null;
+    }
+  }
+
+  // Mock location string for desktop development
+  Future<String?> _getMockLocationString() async {
+    // Simulate network delay
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    // Return a mock location (you can change this)
+    return 'San Francisco, CA, USA';
+  }
+
+  // Static method to get Position object
+  static Future<Position?> getCurrentPosition() async {
+    return LocationService().getCurrentPositionInstance();
+  }
+
+  // Instance method to get Position object
+  Future<Position?> getCurrentPositionInstance() async {
+    try {
+      // Desktop development - return mock position
+      if (isDesktop && kDebugMode) {
+        print('📍 Using mock position for desktop development');
+        return _getMockPosition();
+      }
+
+      // Mobile - get real position
+      final hasPermission = await _handleLocationPermission();
+      if (!hasPermission) return null;
+
+      return await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+    } catch (error) {
+      if (kDebugMode) {
+        print('Error getting position: $error');
+      }
+      return null;
+    }
+  }
+
+  // Mock Position for desktop development
+  Position _getMockPosition() {
+    return Position(
+      latitude: 37.7749,    // San Francisco (change to your test city)
+      longitude: -122.4194,
+      timestamp: DateTime.now(),
+      accuracy: 100.0,
+      altitude: 0.0,
+      heading: 0.0,
+      speed: 0.0,
+      speedAccuracy: 0.0,
+      altitudeAccuracy: 100.0,
+      headingAccuracy: 0.0,
+    );
+  }
+
+  // Optional: Allow setting custom mock location for testing
+  static String? customMockLocationString;
+  static Position? customMockPosition;
+  
+  static void setMockLocationString(String location) {
+    customMockLocationString = location;
+  }
+  
+  static void setMockCoordinates(double latitude, double longitude) {
+    customMockPosition = Position(
+      latitude: latitude,
+      longitude: longitude,
+      timestamp: DateTime.now(),
+      accuracy: 100.0,
+      altitude: 0.0,
+      heading: 0.0,
+      speed: 0.0,
+      speedAccuracy: 0.0,
+      altitudeAccuracy: 100.0,
+      headingAccuracy: 0.0,
+    );
+  }
+}
