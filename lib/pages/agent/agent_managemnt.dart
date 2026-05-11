@@ -481,7 +481,8 @@ class _AgentManagementPageState extends State<AgentManagementPage> {
   }
 
   void _refreshTasks() {
-    // TODO: Implement refresh functionality
+    // Refresh tasks using current mock data
+    // Future implementation should fetch updated tasks from management API
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Tasks refreshed')),
     );

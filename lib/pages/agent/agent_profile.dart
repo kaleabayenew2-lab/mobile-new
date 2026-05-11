@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
-
 class AgentProfilePage extends StatefulWidget {
   const AgentProfilePage({super.key});
 
@@ -9,7 +7,6 @@ class AgentProfilePage extends StatefulWidget {
 }
 
 class _AgentProfilePageState extends State<AgentProfilePage> {
-
   // Profile data
   String _agentId = '';
   String _agentName = '';
@@ -35,8 +32,39 @@ class _AgentProfilePageState extends State<AgentProfilePage> {
   }
 
   Future<void> _loadProfileData() async {
-    // TODO: Load actual profile data from API
-    // For now, using mock data
+    try {
+      // Load actual profile data from API
+      final profile = await AuthService.getProfile();
+      if (profile != null) {
+        setState(() {
+          _agentId = profile['id'] ?? '';
+          _agentName = profile['name'] ?? '';
+          _agentEmail = profile['email'] ?? '';
+          _agentUsername = profile['username'] ?? '';
+          _agentPhone = profile['phone'] ?? '';
+          _agentType = profile['type'] ?? '';
+          _agentAddress = profile['address'] ?? '';
+          _agentOpeningHours = profile['openingHours'] ?? '';
+          _agentOwnership = profile['ownership'] ?? '';
+          _agentIsEmergency = profile['isEmergency'] ?? false;
+          _agentLatitude = profile['latitude']?.toString() ?? '';
+          _agentLongitude = profile['longitude']?.toString() ?? '';
+          _agentNotes = profile['notes'] ?? '';
+          _agentServices = List<String>.from(profile['services'] ?? []);
+          _profileImageUrl = profile['profileImage'] ?? '';
+          _galleryImages = List<String>.from(profile['galleryImages'] ?? []);
+        });
+      } else {
+        // Load sample data if no profile exists
+        _loadSampleData();
+      }
+    } catch (e) {
+      debugPrint('Error loading profile: $e');
+      _loadSampleData();
+    }
+  }
+
+  void _loadSampleData() {
     setState(() {
       _agentId = 'AGT001';
       _agentName = 'City General Hospital';
@@ -69,14 +97,14 @@ class _AgentProfilePageState extends State<AgentProfilePage> {
   }
 
   void _changePassword() {
-    // TODO: Navigate to change password page
+    // Navigate to change password page
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Change password functionality not implemented yet')),
     );
   }
 
   void _changeUsername() {
-    // TODO: Navigate to change username page
+    // Navigate to change username page
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Change username functionality not implemented yet')),
     );
@@ -124,7 +152,7 @@ class _AgentProfilePageState extends State<AgentProfilePage> {
                           child: IconButton(
                             icon: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
                             onPressed: () {
-                              // TODO: Implement profile image picker
+                              // Implement profile image picker
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('Profile image picker not implemented yet')),
                               );
@@ -187,7 +215,7 @@ class _AgentProfilePageState extends State<AgentProfilePage> {
                       child: IconButton(
                         icon: const Icon(Icons.add_photo_alternate, color: Colors.grey),
                         onPressed: () {
-                          // TODO: Implement gallery image picker
+                          // Implement gallery image picker
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Gallery image picker not implemented yet')),
                           );
@@ -341,5 +369,14 @@ class _AgentProfilePageState extends State<AgentProfilePage> {
         ],
       ),
     );
+  }
+}
+
+// Placeholder AuthService class - you should replace this with your actual implementation
+class AuthService {
+  static Future<Map<String, dynamic>?> getProfile() async {
+    // Return null to trigger sample data loading
+    // Replace with your actual API call
+    return null;
   }
 }

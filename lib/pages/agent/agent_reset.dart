@@ -39,24 +39,31 @@ class _AgentResetPageState extends State<AgentResetPage> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
       final result = await _authService.sendPasswordResetOTP(_emailController.text);
 
       if (result['success']) {
         setState(() => _otpSent = true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('OTP sent to your email')),
-        );
+        if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            const SnackBar(content: Text('OTP sent to your email')),
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'] ?? 'Failed to send OTP')),
-        );
+        if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(content: Text(result['message'] ?? 'Failed to send OTP')),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      if (mounted) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     } finally {
       setState(() => _isLoading = false);
     }
@@ -71,24 +78,31 @@ class _AgentResetPageState extends State<AgentResetPage> {
     }
 
     setState(() => _isLoading = true);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
       final result = await _authService.verifyOTP(_emailController.text, _otpController.text);
 
       if (result['success']) {
         setState(() => _otpVerified = true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('OTP verified successfully')),
-        );
+        if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            const SnackBar(content: Text('OTP verified successfully')),
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'] ?? 'Invalid OTP')),
-        );
+        if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(content: Text(result['message'] ?? 'Invalid OTP')),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      if (mounted) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     } finally {
       setState(() => _isLoading = false);
     }
@@ -105,6 +119,7 @@ class _AgentResetPageState extends State<AgentResetPage> {
     }
 
     setState(() => _isLoading = true);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
       final result = await _authService.resetPassword(
@@ -114,19 +129,25 @@ class _AgentResetPageState extends State<AgentResetPage> {
       );
 
       if (result['success']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password reset successful!')),
-        );
+        if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            const SnackBar(content: Text('Password reset successful!')),
+          );
+        }
         widget.onSwitchToLogin();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'] ?? 'Password reset failed')),
-        );
+        if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(content: Text(result['message'] ?? 'Password reset failed')),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      if (mounted) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     } finally {
       setState(() => _isLoading = false);
     }

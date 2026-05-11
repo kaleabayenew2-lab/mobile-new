@@ -20,7 +20,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final _otpController = TextEditingController();
   bool _isLoading = false;
   bool _showOtpSection = false;
-  bool _isOtpSent = false;
   String? _errorMessage;
   String? _successMessage;
 
@@ -73,11 +72,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         if (mounted) {
           if (result['success'] == true) {
             setState(() {
-              _isOtpSent = true;
               _showOtpSection = true;
               _isLoading = false;
             });
-            
             _showSuccess('Reset code sent to your email! (${result['via'] ?? 'email'})');
           } else {
             setState(() {
@@ -157,7 +154,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 5),
               ),

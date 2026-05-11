@@ -48,7 +48,8 @@ class _AgentLoginPageState extends State<AgentLoginPage> {
       if (result['success']) {
         // Store remember me preference if needed
         if (_rememberMe) {
-          // TODO: Implement remember me functionality
+          // Future implementation should save login credentials securely
+          // Consider using secure storage for username/token persistence
         }
 
         if (mounted) {

@@ -40,7 +40,6 @@ class _MapPageState extends State<MapPage> {
       
       // Create facilities list with proper callbacks and calculate distances
       final facilitiesList = facilitiesData.asMap().entries.map((entry) {
-        final index = entry.key;
         final data = entry.value;
         
         // Parse coordinates from API response
@@ -89,7 +88,7 @@ class _MapPageState extends State<MapPage> {
       _updateFacilityDistances();
       
     } catch (e) {
-      print('Error loading facilities from API: $e');
+      debugPrint('Error loading facilities from API: $e');
       setState(() {
         facilities = [];
         _isLoading = false;
@@ -130,7 +129,7 @@ class _MapPageState extends State<MapPage> {
         _useDefaultLocation();
       }
     } catch (e) {
-      print('Error getting location: $e');
+      debugPrint('Error getting location: $e');
       _useDefaultLocation();
     }
   }
@@ -183,7 +182,7 @@ class _MapPageState extends State<MapPage> {
   void _sortFacilitiesByDistance() {
     if (_currentPosition == null) return;
     
-    List<FacilityItem> sortedFacilities = List.from(facilities);
+    final List<FacilityItem> sortedFacilities = List.from(facilities);
     
     sortedFacilities.sort((a, b) {
       final distanceA = double.tryParse(a.distance.replaceAll(' km', '').replaceAll('Calculating...', '999')) ?? 999;
@@ -233,7 +232,7 @@ class _MapPageState extends State<MapPage> {
         facilities: facilities,
         currentPosition: _currentPosition,
         onSearch: (query) {
-          print('Search: $query');
+          debugPrint('Search: $query');
         },
       ),
     );

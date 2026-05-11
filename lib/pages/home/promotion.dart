@@ -69,9 +69,6 @@ class _PromotionState extends State<Promotion> {
     });
   }
 
-  void _stopAutoPlay() {
-    _autoPlayTimer?.cancel();
-  }
 
   void _onPageChanged(int index) {
     setState(() {
@@ -150,8 +147,8 @@ class _PromotionState extends State<Promotion> {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withOpacity(0.3),
-                            Colors.black.withOpacity(0.7),
+                            Colors.black.withValues(alpha: 0.3),
+                            Colors.black.withValues(alpha: 0.7),
                           ],
                         ),
                       ),
@@ -225,7 +222,7 @@ class _PromotionState extends State<Promotion> {
                     shape: BoxShape.circle,
                     color: _currentIndex == index
                         ? Colors.white
-                        : Colors.white.withOpacity(0.5),
+                        : Colors.white.withValues(alpha: 0.5),
                   ),
                 ),
               ),

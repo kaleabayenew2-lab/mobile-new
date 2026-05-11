@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'connection.dart';
-import 'developer.dart';
 
 class LocationService {
   static final LocationService _instance = LocationService._internal();
@@ -16,17 +15,15 @@ class LocationService {
 
   Future<bool> _handleLocationPermission() async {
     // Skip permission checks on desktop
-    if (isDesktop && kDebugMode) {
-      print('📍 Desktop mode: Using mock location');
+    if (isDesktop) {
+      debugPrint('📍 Desktop mode: Using mock location');
       return true;
     }
 
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        if (kDebugMode) {
-          print('Location services are disabled. Please enable the services');
-        }
+        debugPrint('Location services are disabled. Please enable services');
         return false;
       }
       
@@ -34,22 +31,20 @@ class LocationService {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          if (kDebugMode) {
-            print('Location permissions are denied');
-          }
+          debugPrint('Location permissions are denied');
           return false;
         }
       }
       if (permission == LocationPermission.deniedForever) {
         if (kDebugMode) {
-          print('Location permissions are permanently denied, we cannot request permissions.');
+          debugPrint('Location permissions are permanently denied, we cannot request permissions.');
         }
         return false;
       }
       return true;
     } catch (error) {
       if (kDebugMode) {
-        print('Error checking location permissions: $error');
+        debugPrint('Error checking location permissions: $error');
       }
       return false;
     }
@@ -65,7 +60,7 @@ class LocationService {
     try {
       // Desktop development - return mock location
       if (isDesktop && kDebugMode) {
-        print('📍 Using mock location for desktop development');
+        debugPrint('📍 Using mock location for desktop development');
         return await _getMockLocationString();
       }
 
@@ -90,12 +85,12 @@ class LocationService {
         position.longitude,
       );
 
-      if (placemarks == null || placemarks.isEmpty) return null;
+      if (placemarks.isEmpty) return null;
 
       final place = placemarks.first;
       final locationParts = <String>[];
 
-      if (place.locality != null && place.locality!.isNotEmpty) {
+      if (place.locality?.isNotEmpty == true) {
         locationParts.add(place.locality!);
       }
       if (place.administrativeArea != null && place.administrativeArea!.isNotEmpty) {
@@ -108,7 +103,7 @@ class LocationService {
       return locationParts.isNotEmpty ? locationParts.join(', ') : 'Unknown Location';
     } catch (error) {
       if (kDebugMode) {
-        print('Error getting location: $error');
+        debugPrint('Error getting location: $error');
       }
       return null;
     }
@@ -118,6 +113,11 @@ class LocationService {
   Future<String?> _getMockLocationString() async {
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 500));
+    
+    // Use custom mock location if set, otherwise default
+    if (customMockLocationString != null) {
+      return customMockLocationString;
+    }
     
     // Return a mock location (you can change this)
     return 'San Francisco, CA, USA';
@@ -133,7 +133,7 @@ class LocationService {
     try {
       // Desktop development - return mock position
       if (isDesktop && kDebugMode) {
-        print('📍 Using mock position for desktop development');
+        debugPrint('📍 Using mock position for desktop development');
         return _getMockPosition();
       }
 
@@ -147,7 +147,7 @@ class LocationService {
       );
     } catch (error) {
       if (kDebugMode) {
-        print('Error getting position: $error');
+        debugPrint('Error getting position: $error');
       }
       return null;
     }
@@ -155,6 +155,11 @@ class LocationService {
 
   // Mock Position for desktop development
   Position _getMockPosition() {
+    // Use custom mock position if set, otherwise default
+    if (customMockPosition != null) {
+      return customMockPosition!;
+    }
+    
     return Position(
       latitude: 37.7749,    // San Francisco (change to your test city)
       longitude: -122.4194,

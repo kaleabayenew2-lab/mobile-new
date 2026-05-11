@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:math' as math;
@@ -9,7 +8,6 @@ class HomeApi {
   static const String _facilitiesEndpoint = '$_baseUrl/api/facilities';
   static const String _promotionsEndpoint = '$_baseUrl/api/promotions';
   static const String _searchEndpoint = '$_baseUrl/api/search';
-  static const String _locationEndpoint = '$_baseUrl/api/location';
 
   // Get all facilities
   static Future<List<Map<String, dynamic>>> getFacilities() async {

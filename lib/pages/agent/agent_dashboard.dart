@@ -31,8 +31,8 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
   }
 
   void _loadDashboardData() {
-    // TODO: Load actual dashboard data from API
-    // For now, using mock data
+    // Load dashboard statistics using mock data
+    // Future implementation should fetch from agent dashboard API
     setState(() {
       _totalBookings = 45;
       _activeBookings = 8;

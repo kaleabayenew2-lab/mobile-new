@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
+import 'package:flutter/services.dart';
 
 class MedicalProfilePage extends StatefulWidget {
   const MedicalProfilePage({super.key});
@@ -19,14 +19,14 @@ class _MedicalProfilePageState extends State<MedicalProfilePage> {
   final _medicationsController = TextEditingController();
   final _emergencyContactController = TextEditingController();
   final _medicalHistoryController = TextEditingController();
-  
-  bool _isLoading = false;
+
   bool _isEditing = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadProfileData();
+    _populateForm();
   }
 
   @override
@@ -43,9 +43,8 @@ class _MedicalProfilePageState extends State<MedicalProfilePage> {
     super.dispose();
   }
 
-  void _loadProfileData() {
-    // Load medical profile data from AuthService or API
-    // For now, using mock data
+  void _populateForm() {
+    // Mock data - in real app, this would come from API/database
     final mockData = {
       'fullName': 'John Doe',
       'email': 'john.doe@example.com',
@@ -59,15 +58,15 @@ class _MedicalProfilePageState extends State<MedicalProfilePage> {
     };
     
     setState(() {
-      _fullNameController.text = mockData['fullName'] ?? '';
-      _emailController.text = mockData['email'] ?? '';
+      _fullNameController.text = mockData['fullName']?.toString() ?? '';
+      _emailController.text = mockData['email']?.toString() ?? '';
       _phoneController.text = mockData['phone']?.toString().replaceAll('+251', '') ?? '';
       _ageController.text = mockData['age']?.toString() ?? '';
-      _bloodTypeController.text = mockData['bloodType'] ?? '';
-      _allergiesController.text = mockData['allergies'] ?? '';
-      _medicationsController.text = mockData['medications'] ?? '';
+      _bloodTypeController.text = mockData['bloodType']?.toString() ?? '';
+      _allergiesController.text = mockData['allergies']?.toString() ?? '';
+      _medicationsController.text = mockData['medications']?.toString() ?? '';
       _emergencyContactController.text = mockData['emergencyContact']?.toString().replaceAll('+251', '') ?? '';
-      _medicalHistoryController.text = mockData['medicalHistory'] ?? '';
+      _medicalHistoryController.text = mockData['medicalHistory']?.toString() ?? '';
     });
   }
 
@@ -80,44 +79,73 @@ class _MedicalProfilePageState extends State<MedicalProfilePage> {
     });
   }
 
-  void _populateForm() {
-    // Form is already populated in _loadProfileData
+  Future<void> _saveProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Simulate API call
+      await Future.delayed(const Duration(seconds: 2));
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Medical profile saved successfully!')),
+        );
+        setState(() => _isEditing = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving profile: $e')),
+        );
+      }
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
-  void _saveProfile() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+  Future<void> _deleteProfile() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Profile'),
+        content: const Text('Are you sure you want to delete your medical profile?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
 
+    if (confirmed == true) {
+      setState(() => _isLoading = true);
+      
       try {
-        // Save medical profile data via API
-        await Future.delayed(const Duration(seconds: 2));
+        // Simulate API call
+        await Future.delayed(const Duration(seconds: 1));
         
-        setState(() {
-          _isLoading = false;
-          _isEditing = false;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Medical profile saved successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        Navigator.of(context).pop();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Medical profile deleted successfully!')),
+          );
+          Navigator.of(context).pop();
+        }
       } catch (e) {
-        setState(() {
-          _isLoading = false;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving profile: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error deleting profile: $e')),
+          );
+        }
+      } finally {
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -126,19 +154,18 @@ class _MedicalProfilePageState extends State<MedicalProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Medical Profile' : 'Medical Profile'),
-        backgroundColor: Colors.blue,
+        title: const Text('Medical Profile'),
+        backgroundColor: Colors.red[600],
         foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            icon: Icon(_isEditing ? Icons.save : Icons.edit),
+            onPressed: _isLoading ? null : (_isEditing ? _saveProfile : _toggleEditMode),
+          ),
           if (!_isEditing)
             IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: _toggleEditMode,
-            ),
-          if (_isEditing)
-            IconButton(
-              icon: const Icon(Icons.cancel),
-              onPressed: _toggleEditMode,
+              icon: const Icon(Icons.delete),
+              onPressed: _isLoading ? null : _deleteProfile,
             ),
         ],
       ),
@@ -151,190 +178,226 @@ class _MedicalProfilePageState extends State<MedicalProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Personal Information
+                    // Personal Information Section
                     const Text(
                       'Personal Information',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 16),
-
-                    // Full Name
+                    
                     TextFormField(
                       controller: _fullNameController,
-                      enabled: _isEditing,
                       decoration: const InputDecoration(
                         labelText: 'Full Name',
-                        prefixIcon: Icon(Icons.person),
                         border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.person),
                       ),
+                      enabled: _isEditing,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your full name';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
-
-                    // Email
+                    
                     TextFormField(
                       controller: _emailController,
-                      enabled: _isEditing,
-                      keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
                         labelText: 'Email',
+                        border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.email),
-                        border: OutlineInputBorder(),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Phone
-                    TextFormField(
-                      controller: _phoneController,
+                      keyboardType: TextInputType.emailAddress,
                       enabled: _isEditing,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone Number',
-                        prefixText: '+251 ',
-                        prefixIcon: Icon(Icons.phone),
-                        border: OutlineInputBorder(),
-                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
-
-                    // Age
-                    TextFormField(
-                      controller: _ageController,
-                      enabled: _isEditing,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Age',
-                        prefixIcon: Icon(Icons.cake),
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Medical Information
-                    const Text(
-                      'Medical Information',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
+                    
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _phoneController,
+                            decoration: const InputDecoration(
+                              labelText: 'Phone',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.phone),
+                              prefixText: '+251 ',
+                            ),
+                            keyboardType: TextInputType.phone,
+                            enabled: _isEditing,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(9),
+                            ],
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your phone number';
+                              }
+                              if (value.length != 9) {
+                                return 'Phone number must be 9 digits';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _ageController,
+                            decoration: const InputDecoration(
+                              labelText: 'Age',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.cake),
+                            ),
+                            keyboardType: TextInputType.number,
+                            enabled: _isEditing,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your age';
+                              }
+                              final age = int.tryParse(value);
+                              if (age == null || age < 0 || age > 150) {
+                                return 'Please enter a valid age';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
-
-                    // Blood Type
+                    
                     TextFormField(
                       controller: _bloodTypeController,
-                      enabled: _isEditing,
                       decoration: const InputDecoration(
                         labelText: 'Blood Type',
+                        border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.opacity),
-                        border: OutlineInputBorder(),
+                        hintText: 'e.g., O+, A-, B+, AB-',
                       ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Allergies
-                    TextFormField(
-                      controller: _allergiesController,
                       enabled: _isEditing,
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Allergies',
-                        prefixIcon: Icon(Icons.warning),
-                        border: OutlineInputBorder(),
-                        helperText: 'Separate with commas',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Medications
-                    TextFormField(
-                      controller: _medicationsController,
-                      enabled: _isEditing,
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'Current Medications',
-                        prefixIcon: Icon(Icons.medication),
-                        border: OutlineInputBorder(),
-                        helperText: 'Separate with commas',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Emergency Contact
-                    TextFormField(
-                      controller: _emergencyContactController,
-                      enabled: _isEditing,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: 'Emergency Contact',
-                        prefixText: '+251 ',
-                        prefixIcon: Icon(Icons.emergency),
-                        border: OutlineInputBorder(),
-                        helperText: 'For medical emergencies',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Medical History
-                    TextFormField(
-                      controller: _medicalHistoryController,
-                      enabled: _isEditing,
-                      maxLines: 5,
-                      decoration: const InputDecoration(
-                        labelText: 'Medical History',
-                        prefixIcon: Icon(Icons.history),
-                        border: OutlineInputBorder(),
-                        helperText: 'List major conditions and surgeries',
-                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your blood type';
+                        }
+                        final validTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+                        if (!validTypes.contains(value.toUpperCase())) {
+                          return 'Please enter a valid blood type (A+, A-, B+, B-, AB+, AB-, O+, O-)';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 24),
-
-                    // Action Buttons
-                    if (_isEditing) ...[
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: _toggleEditMode,
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                side: const BorderSide(color: Colors.grey),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text('Cancel'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: _saveProfile,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text('Save Medical Profile'),
-                            ),
-                          ),
-                        ],
+                    
+                    // Medical Information Section
+                    const Text(
+                      'Medical Information',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    TextFormField(
+                      controller: _allergiesController,
+                      decoration: const InputDecoration(
+                        labelText: 'Allergies',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.warning),
+                        hintText: 'List any known allergies',
                       ),
-                    ],
+                      maxLines: 2,
+                      enabled: _isEditing,
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    TextFormField(
+                      controller: _medicationsController,
+                      decoration: const InputDecoration(
+                        labelText: 'Current Medications',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.medication),
+                        hintText: 'List current medications',
+                      ),
+                      maxLines: 2,
+                      enabled: _isEditing,
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    TextFormField(
+                      controller: _emergencyContactController,
+                      decoration: const InputDecoration(
+                        labelText: 'Emergency Contact',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.emergency),
+                        prefixText: '+251 ',
+                      ),
+                      keyboardType: TextInputType.phone,
+                      enabled: _isEditing,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(9),
+                      ],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter emergency contact number';
+                        }
+                        if (value.length != 9) {
+                          return 'Phone number must be 9 digits';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    TextFormField(
+                      controller: _medicalHistoryController,
+                      decoration: const InputDecoration(
+                        labelText: 'Medical History',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.history),
+                        hintText: 'List any medical conditions or surgeries',
+                      ),
+                      maxLines: 3,
+                      enabled: _isEditing,
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    // Save Button (only visible when editing)
+                    if (_isEditing)
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _saveProfile,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red[600],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: _isLoading
+                              ? const CircularProgressIndicator(color: Colors.white)
+                              : const Text('Save Medical Profile'),
+                        ),
+                      ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
     );
   }
 }

@@ -18,8 +18,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       routes: MapRoute.getRoutes(),
-      home: SplashScreen(
-        child: const HomePage(),
+      home: const SplashScreen(
+        child: HomePage(),
       ),
       debugShowCheckedModeBanner: false,
     );

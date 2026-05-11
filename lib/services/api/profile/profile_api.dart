@@ -165,6 +165,85 @@ class ProfileApi {
     return await getProfile(userId);
   }
 
+  /// Change user password
+  static Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/users/change-password'),
+        headers: await _getHeaders(),
+        body: jsonEncode({
+          'currentPassword': currentPassword,
+          'newPassword': newPassword,
+        }),
+      );
+      
+      if (response.statusCode == 200) {
+        try {
+          final responseData = jsonDecode(response.body);
+          return {
+            'success': true,
+            'data': responseData,
+            'message': 'Password changed successfully',
+          };
+        } catch (e) {
+          return {
+            'success': false,
+            'message': 'Invalid response format from server',
+          };
+        }
+      } else if (response.statusCode == 401) {
+        return {
+          'success': false,
+          'message': 'Current password is incorrect',
+        };
+      } else if (response.statusCode == 400) {
+        try {
+          final errorData = jsonDecode(response.body);
+          return {
+            'success': false,
+            'message': errorData['message'] ?? 'Invalid password format',
+          };
+        } catch (e) {
+          return {
+            'success': false,
+            'message': 'Invalid request',
+          };
+        }
+      } else {
+        try {
+          final errorData = jsonDecode(response.body);
+          return {
+            'success': false,
+            'message': errorData['message'] ?? 'Failed to change password',
+          };
+        } catch (e) {
+          return {
+            'success': false,
+            'message': 'Server error: ${response.statusCode} ${response.reasonPhrase}',
+          };
+        }
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Network error: $e',
+      };
+    }
+  }
+
+  /// Get headers with authorization token
+  static Future<Map<String, String>> _getHeaders() async {
+    final authService = AuthService();
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': 'Bearer ${authService.token}',
+    };
+  }
+
   /// Validate phone number format
   static bool isValidPhone(String phone) {
     // Remove any non-digit characters
@@ -182,12 +261,12 @@ class ProfileApi {
   /// Validate age
   static bool isValidAge(int? age) {
     if (age == null) return true; // Optional field
-    return age! >= 10 && age! <= 100;
+    return age >= 10 && age <= 100;
   }
 
   /// Validate full name
   static bool isValidFullName(String? fullName) {
-    if (fullName == null || fullName!.isEmpty) return false;
-    return fullName!.length >= 2 && fullName!.length <= 50;
+    if (fullName == null || fullName.isEmpty) return false;
+    return fullName.length >= 2 && fullName.length <= 50;
   }
 }

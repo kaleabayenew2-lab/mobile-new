@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-// Remove or comment out this import if detailfacility.dart doesn't exist yet
-// import 'detailfacility.dart';
 
 class FacilityItem {
   final String name;
@@ -13,7 +11,7 @@ class FacilityItem {
   final List<String>? services;
   final String? openingHours;
   final String? hospitalType;
-  final String? pharmacyType;
+  final String? pharmacyType; // Added missing field
   final double latitude;
   final double longitude;
   final VoidCallback? onTap;
@@ -31,7 +29,7 @@ class FacilityItem {
     this.services,
     this.openingHours,
     this.hospitalType,
-    this.pharmacyType,
+    this.pharmacyType, // Added missing parameter
     this.onTap,
   });
 
@@ -46,7 +44,7 @@ class FacilityItem {
     List<String>? services,
     String? openingHours,
     String? hospitalType,
-    String? pharmacyType,
+    String? pharmacyType, // Added missing parameter
     double? latitude,
     double? longitude,
     VoidCallback? onTap,
@@ -62,7 +60,7 @@ class FacilityItem {
       services: services ?? this.services,
       openingHours: openingHours ?? this.openingHours,
       hospitalType: hospitalType ?? this.hospitalType,
-      pharmacyType: pharmacyType ?? this.pharmacyType,
+      pharmacyType: pharmacyType ?? this.pharmacyType, // Added missing field
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       onTap: onTap ?? this.onTap,
@@ -103,137 +101,140 @@ class _FacilityState extends State<Facility> {
         ? widget.facilities 
         : widget.facilities.take(widget.maxItems).toList();
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section title
-          const Text(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section title
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
             'Our Facilities',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 12),
-          
-          // Loading state
-          if (widget.isLoading)
-            Container(
-              height: 200,
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text(
-                      'Loading facilities...',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
+        ),
+        const SizedBox(height: 12),
+        
+        // Loading state
+        if (widget.isLoading)
+          const SizedBox(
+            height: 200,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text(
+                    'Loading facilities...',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            )
-          // Error state with retry
-          else if (widget.hasError && widget.facilities.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 48,
-                      color: Colors.red[300],
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Unable to load facilities',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Please check your connection and try again',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    IconButton(
-                      onPressed: widget.onRetry,
-                      icon: const Icon(Icons.refresh),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.blue.shade50,
-                        foregroundColor: Colors.blue.shade700,
-                        padding: const EdgeInsets.all(12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Tap to retry',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.blue.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          // Empty state
-          else if (widget.facilities.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(
-                      Icons.location_off,
-                      size: 48,
+            ),
+          )
+        // Error state with retry
+        else if (widget.hasError && widget.facilities.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: Colors.red[300],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Unable to load facilities',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
                       color: Colors.grey,
                     ),
-                    SizedBox(height: 16),
-                    Text(
-                      'No facilities available',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Please check your connection and try again',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  IconButton(
+                    onPressed: widget.onRetry,
+                    icon: const Icon(Icons.refresh),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.blue.shade50,
+                      foregroundColor: Colors.blue.shade700,
+                      padding: const EdgeInsets.all(12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Please try again later',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tap to retry',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.blue.shade700,
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            )
-          // Facility list
-          else ...[
-            ListView.separated(
+            ),
+          )
+        // Empty state
+        else if (widget.facilities.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.location_off,
+                    size: 48,
+                    color: Colors.grey,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No facilities available',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Please try again later',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        // Facility list
+        else ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: displayFacilities.length,
@@ -245,10 +246,13 @@ class _FacilityState extends State<Facility> {
                 );
               },
             ),
-            const SizedBox(height: 16),
-            // More/Less button
-            if (widget.facilities.length > widget.maxItems)
-              SizedBox(
+          ),
+          const SizedBox(height: 16),
+          // More/Less button
+          if (widget.facilities.length > widget.maxItems)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
                   onPressed: () {
@@ -264,7 +268,7 @@ class _FacilityState extends State<Facility> {
                     ),
                   ),
                   child: Text(
-                    _showAll ? widget.lessButtonText ?? 'Less' : widget.moreButtonText!,
+                    _showAll ? widget.lessButtonText! : widget.moreButtonText!,
                     style: TextStyle(
                       color: Colors.blue.shade700,
                       fontSize: 14,
@@ -273,9 +277,9 @@ class _FacilityState extends State<Facility> {
                   ),
                 ),
               ),
-          ],
+            ),
         ],
-      ),
+      ],
     );
   }
 }
@@ -284,32 +288,31 @@ class _FacilityCard extends StatelessWidget {
   final FacilityItem facility;
 
   const _FacilityCard({
-    super.key,
     required this.facility,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Determine which type to display (hospitalType or pharmacyType)
+    String displayType = facility.facilityType;
+    if (facility.facilityType.toLowerCase() == 'hospital' && facility.hospitalType != null) {
+      displayType = facility.hospitalType!;
+    } else if (facility.facilityType.toLowerCase() == 'pharmacy' && facility.pharmacyType != null) {
+      displayType = facility.pharmacyType!;
+    }
+
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: Tooltip(
-        message: '${facility.name}\n${facility.location}\nDistance: ${facility.distance}\nType: ${facility.facilityType}',
+        message: '${facility.name}\n${facility.location}\nDistance: ${facility.distance}\nType: $displayType',
         child: GestureDetector(
           onTap: facility.onTap,
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey.shade200),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.05),
-                  spreadRadius: 1,
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
-                ),
-              ],
             ),
             child: Row(
               children: [
@@ -318,7 +321,7 @@ class _FacilityCard extends StatelessWidget {
                   child: Container(
                     width: 50,
                     height: 50,
-                    color: Colors.grey[200],
+                    color: Colors.grey.shade100,
                     child: facility.profileImage != null
                         ? Image.asset(
                             facility.profileImage!,
@@ -391,35 +394,39 @@ class _FacilityCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 12),
                           // Phone
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.phone,
-                                size: 12,
-                                color: Colors.grey[600],
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                facility.phoneNumber,
-                                style: TextStyle(
-                                  fontSize: 11,
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.phone,
+                                  size: 12,
                                   color: Colors.grey[600],
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 4),
+                                Text(
+                                  facility.phoneNumber,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey[600],
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
-                      // Facility Type
+                      const SizedBox(height: 4),
+                      // Facility Type with specific type if available
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
+                          color: Colors.blue.shade50,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          facility.facilityType,
+                          displayType,
                           style: TextStyle(
                             fontSize: 10,
                             color: Colors.blue[700],
@@ -427,6 +434,32 @@ class _FacilityCard extends StatelessWidget {
                           ),
                         ),
                       ),
+                      // Show email if available
+                      if (facility.email != null && facility.email!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.email,
+                                size: 10,
+                                color: Colors.grey[500],
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  facility.email!,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey[500],
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -445,10 +478,22 @@ class _FacilityCard extends StatelessWidget {
   }
 
   Widget _buildDefaultAvatar() {
-    return Icon(
-      Icons.local_hospital,
-      size: 24,
-      color: Colors.grey[600],
+    // Choose icon based on facility type
+    IconData iconData;
+    if (facility.facilityType.toLowerCase() == 'hospital') {
+      iconData = Icons.local_hospital;
+    } else if (facility.facilityType.toLowerCase() == 'pharmacy') {
+      iconData = Icons.medication;
+    } else {
+      iconData = Icons.medical_services;
+    }
+    
+    return Center(
+      child: Icon(
+        iconData,
+        size: 24,
+        color: Colors.grey[600],
+      ),
     );
   }
 }

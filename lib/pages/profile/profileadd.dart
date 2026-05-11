@@ -18,7 +18,7 @@ class _ProfileAddPageState extends State<ProfileAddPage> {
   
   bool _isLoading = false;
   bool _isEditing = false;
-  Map<String, dynamic>? _savedFacilities;
+  List<Map<String, dynamic>> _savedFacilities = [];
 
   @override
   void initState() {
@@ -129,7 +129,7 @@ class _ProfileAddPageState extends State<ProfileAddPage> {
     _facilityNameController.clear();
     _facilityAddressController.clear();
     _facilityPhoneController.clear();
-    _facilityTypeController.dispose();
+    _facilityTypeController.clear();
   }
 
   void _saveFacility() async {
@@ -157,7 +157,7 @@ class _ProfileAddPageState extends State<ProfileAddPage> {
             setState(() {
               _isLoading = false;
               _isEditing = false;
-              _savedFacilities!.add(result['data']);
+              _savedFacilities.add(result['data']);
               _clearForm();
             });
             ScaffoldMessenger.of(context).showSnackBar(
@@ -255,7 +255,7 @@ class _ProfileAddPageState extends State<ProfileAddPage> {
                   children: [
                     // Saved Facilities List
                     Expanded(
-                      child: _savedFacilities!.isEmpty
+                      child: _savedFacilities.isEmpty
                           ? const Center(
                               child: Text(
                                 'No saved facilities yet',
@@ -267,9 +267,9 @@ class _ProfileAddPageState extends State<ProfileAddPage> {
                             )
                           : ListView.builder(
                               padding: const EdgeInsets.all(16),
-                              itemCount: _savedFacilities!.length,
+                              itemCount: _savedFacilities.length,
                               itemBuilder: (context, index) {
-                                final facility = _savedFacilities![index];
+                                final facility = _savedFacilities[index];
                                 return Card(
                                   margin: const EdgeInsets.only(bottom: 8),
                                   elevation: 1,
@@ -428,11 +428,12 @@ class _ProfileAddPageState extends State<ProfileAddPage> {
               : const Center(
                   child: Text(
                     'Please login to view saved facilities',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey,
                     ),
                   ),
-    );
+                  ),
+                );
   }
 }

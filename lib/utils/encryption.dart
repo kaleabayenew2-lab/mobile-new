@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 class EncryptionUtils {
   // Proper AES-256-GCM decryption implementation
@@ -19,14 +19,14 @@ class EncryptionUtils {
       }
       
       // Extract IV, tag, and encrypted data (same as backend)
-      final ivHex = parts[0];
-      final tagHex = parts[1];
+      // final ivHex = parts[0];
+      // final tagHex = parts[1];
       final encrypted = parts[2];
       
-      // Convert hex strings to bytes
-      final ivBytes = _hexToBytes(ivHex);
-      final tagBytes = _hexToBytes(tagHex);
-      final encryptedBytes = _hexToBytes(encrypted);
+      // Convert hex strings to bytes (for future AES implementation)
+      // final ivBytes = _hexToBytes(ivHex);
+      // final tagBytes = _hexToBytes(tagHex);
+      // final encryptedBytes = _hexToBytes(encrypted);
       
       // Simple AES-256-GCM decryption simulation
       // In production, you would implement proper AES-256-GCM decryption
@@ -37,20 +37,20 @@ class EncryptionUtils {
         return encryptedData;
       }
     } catch (e) {
-      print('Decryption error: $e');
+      debugPrint('Decryption error: $e');
       return encryptedData; // Return original if decryption fails
     }
   }
   
-  // Helper method to convert hex to bytes
-  static List<int> _hexToBytes(String hex) {
-    final result = <int>[];
-    for (int i = 0; i < hex.length; i += 2) {
-      final byte = int.parse(hex.substring(i, i + 2), radix: 16);
-      result.add(byte);
-    }
-    return result;
-  }
+  // Helper method to convert hex to bytes (for future AES implementation)
+  // static List<int> _hexToBytes(String hex) {
+  //   final result = <int>[];
+  //   for (int i = 0; i < hex.length; i += 2) {
+  //     final byte = int.parse(hex.substring(i, i + 2), radix: 16);
+  //     result.add(byte);
+  //   }
+  //   return result;
+  // }
   
   static String formatEncryptedField(String? encryptedValue) {
     if (encryptedValue == null || encryptedValue.isEmpty) {

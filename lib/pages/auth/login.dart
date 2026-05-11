@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'reset_password.dart';
 import '../../services/api/auth/login_api.dart';
-import '../../services/auth_service.dart';
 import '../../components/auth_popups.dart';
+import '../../services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   final VoidCallback? onLoginSuccess;
@@ -77,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
           if (result['success'] == true) {
             // Store user data and token if needed
             final userData = result['data'];
-            print('Login successful: ${userData}');
+            debugPrint('Login successful: $userData');
             
             // Set user authentication state
             final authService = AuthService();
@@ -110,17 +109,23 @@ class _LoginPageState extends State<LoginPage> {
     
     // Show reset password with transparent background after a short delay
     Future.delayed(const Duration(milliseconds: 100), () {
-      AuthPopups.showResetPasswordPopupWithNavigation(
-        context,
-        onPasswordResetSuccess: () {
-          // When reset password popup is dismissed, navigate to home page
-          Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-        },
-        onPopupClosed: () {
-          // When reset password popup is closed, navigate to home page
-          Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-        },
-      );
+      if (mounted) {
+        AuthPopups.showResetPasswordPopupWithNavigation(
+          context,
+          onPasswordResetSuccess: () {
+            // When reset password popup is dismissed, navigate to home page
+            if (mounted) {
+              Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+            }
+          },
+          onPopupClosed: () {
+            // When reset password popup is closed, navigate to home page
+            if (mounted) {
+              Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+            }
+          },
+        );
+      }
     });
   }
 
@@ -137,7 +142,7 @@ class _LoginPageState extends State<LoginPage> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.white.withAlpha(50),
                 blurRadius: 10,
                 offset: const Offset(0, 5),
               ),

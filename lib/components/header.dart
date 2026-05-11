@@ -57,7 +57,7 @@ class Header extends StatelessWidget {
         color: Colors.blue,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
+            color: Colors.grey.withValues(alpha: 0.3),
             spreadRadius: 1,
             blurRadius: 3,
             offset: const Offset(0, 2),
@@ -160,7 +160,7 @@ class Header extends StatelessWidget {
                       Text(
                         authService.formattedPhone,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 12,
                         ),
                       ),

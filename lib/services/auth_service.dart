@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'api_service.dart';
 
 /// User authentication state management service
@@ -57,27 +58,27 @@ class AuthService {
   void _storeUserData() {
     // In a real app, you'd use shared_preferences or secure_storage
     // For now, we'll just keep it in memory
-    print('User data stored: ${jsonEncode(_currentUser)}');
+    debugPrint('User data stored: ${jsonEncode(_currentUser)}');
   }
 
   /// Clear user data from local storage
   void _clearUserData() {
     // In a real app, you'd clear shared_preferences or secure_storage
-    print('User data cleared');
+    debugPrint('User data cleared');
   }
 
   /// Initialize auth state from storage (simplified version)
   Future<void> initialize() async {
     // In a real app, you'd load from shared_preferences or secure_storage
-    print('AuthService initialized');
+    debugPrint('AuthService initialized');
   }
 
   /// Get user display name
   String get userDisplayName {
     if (_currentUser == null) return 'Guest';
     final fullName = _currentUser!['fullName'] as String?;
-    if (fullName != null && fullName!.isNotEmpty) {
-      return fullName!;
+    if (fullName != null && fullName.isNotEmpty) {
+      return fullName;
     }
     return 'User';
   }
@@ -85,8 +86,8 @@ class AuthService {
   /// Get formatted phone number
   String get formattedPhone {
     final phone = _currentUser?['phone'] as String?;
-    if (phone != null && phone!.isNotEmpty) {
-      return phone!;
+    if (phone != null && phone.isNotEmpty) {
+      return phone;
     }
     return 'Not provided';
   }

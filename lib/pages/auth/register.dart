@@ -105,7 +105,7 @@ class _RegisterPageState extends State<RegisterPage> {
           if (result['success'] == true) {
             // Store user data and token if needed
             final userData = result['data'];
-            print('Registration successful: ${userData}');
+            debugPrint('Registration successful: $userData');
             
             // Set user authentication state
             final authService = AuthService();

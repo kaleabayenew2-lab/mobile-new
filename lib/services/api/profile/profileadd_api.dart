@@ -270,7 +270,7 @@ class ProfileAddApi {
     // Validate email
     if (medicalData.containsKey('email')) {
       final email = medicalData['email'].toString().trim();
-      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,})$').hasMatch(email)) {
+      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,}$').hasMatch(email)) {
         return false;
       }
     }
@@ -286,7 +286,7 @@ class ProfileAddApi {
     // Validate age
     if (medicalData.containsKey('age')) {
       final age = int.tryParse(medicalData['age'].toString());
-      if (age == null || age! < 0 || age! > 120) {
+      if (age == null || age < 0 || age > 120) {
         return false;
       }
     }
@@ -296,11 +296,11 @@ class ProfileAddApi {
 
   /// Validate blood type
   static bool isValidBloodType(String? bloodType) {
-    if (bloodType == null || bloodType!.isEmpty) {
+    if (bloodType == null || bloodType.isEmpty) {
       return false;
     }
     
     final validTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-    return validTypes.contains(bloodType!);
+    return validTypes.contains(bloodType);
   }
 }

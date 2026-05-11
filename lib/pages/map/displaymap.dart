@@ -63,7 +63,7 @@ class _DisplayMapState extends State<DisplayMap> {
                 border: Border.all(color: Colors.white, width: 3),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -96,7 +96,7 @@ class _DisplayMapState extends State<DisplayMap> {
                   border: Border.all(color: Colors.white, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -314,6 +314,7 @@ class _DisplayMapState extends State<DisplayMap> {
                         mini: true,
                         backgroundColor: Colors.blue,
                         onPressed: () async {
+                          final scaffoldMessenger = ScaffoldMessenger.of(context);
                           try {
                             Position position = await Geolocator.getCurrentPosition();
                             _mapController.move(
@@ -321,9 +322,11 @@ class _DisplayMapState extends State<DisplayMap> {
                               14.0,
                             );
                           } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: $e')),
-                            );
+                            if (mounted) {
+                              scaffoldMessenger.showSnackBar(
+                                SnackBar(content: Text('Error: $e')),
+                              );
+                            }
                           }
                         },
                         child: const Icon(Icons.my_location),
@@ -344,7 +347,7 @@ class _DisplayMapState extends State<DisplayMap> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
+                      color: Colors.black.withValues(alpha: 0.7),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Text(
@@ -394,7 +397,7 @@ class _DisplayMapState extends State<DisplayMap> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -409,7 +412,7 @@ class _DisplayMapState extends State<DisplayMap> {
                                   width: 40,
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.1),
+                                    color: Colors.blue.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Icon(

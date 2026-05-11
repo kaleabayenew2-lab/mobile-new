@@ -17,6 +17,7 @@ dependencies:
   http: ^1.6.0  # Updated from 0.13.5 to 1.6.0
   hex: ^0.2.0
   flutter_map: ^6.1.0  # Keep this
+  latlong2: ^0.9.1
   
 dev_dependencies:
   flutter_test:

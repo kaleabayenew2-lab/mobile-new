@@ -44,9 +44,19 @@ class Sidebar extends StatelessWidget {
       ),
       child: (isOpen || isDrawer)
           ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Header section with close button
                 Container(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Colors.grey,
+                        width: 0.5,
+                      ),
+                    ),
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -56,36 +66,80 @@ class Sidebar extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            overflow: TextOverflow.ellipsis,
                           ),
+                          maxLines: 1,
                         ),
                       ),
                       if (onClose != null)
                         IconButton(
                           icon: const Icon(Icons.close),
                           onPressed: onClose,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          splashRadius: 24,
                         ),
                     ],
                   ),
                 ),
-                const Divider(),
+                const Divider(height: 1),
+                // Menu items list
                 Expanded(
                   child: ListView.builder(
+                    padding: EdgeInsets.zero,
                     itemCount: items.length,
                     itemBuilder: (context, index) {
                       final item = items[index];
                       return ListTile(
-                        minLeadingWidth: 40,
-                        leading: SizedBox(
+                        leading: Container(
                           width: 24,
-                          child: Icon(item.icon),
+                          height: 24,
+                          alignment: Alignment.center,
+                          child: Icon(
+                            item.icon,
+                            size: 20,
+                          ),
                         ),
-                        title: Text(item.title),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                        onTap: item.onTap,
+                        title: Text(
+                          item.title,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          maxLines: 1,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        dense: true,
+                        horizontalTitleGap: 12,
+                        onTap: () {
+                          if (item.onTap != null) {
+                            item.onTap!();
+                          }
+                          if (!isDrawer && onClose != null && isOpen) {
+                            onClose!();
+                          }
+                        },
                       );
                     },
                   ),
                 ),
+                // Optional footer
+                if (isDrawer)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: Colors.grey, width: 0.5),
+                      ),
+                    ),
+                    child: const Text(
+                      'Version 1.0.0',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
               ],
             )
           : const SizedBox.shrink(),

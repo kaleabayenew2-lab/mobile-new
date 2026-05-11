@@ -42,8 +42,8 @@ class _DetailFacilityState extends State<DetailFacility> {
       widget.facility.profileImage ?? 'assets/images/logo.png',
       'assets/images/logo.png',
       'assets/images/logo.png',
-      'assets/images/logo.png',
     ]);
+    debugPrint('Gallery initialized with ${_galleryImages.length} images');
   }
 
   void _startAutoPlay() {
@@ -55,8 +55,10 @@ class _DetailFacilityState extends State<DetailFacility> {
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
+        debugPrint('Timer tick: $_currentIndex');
       }
     });
+    debugPrint('Auto-play started for facility: ${widget.facility.name}');
   }
 
   void _onPageChanged(int index) {
@@ -151,7 +153,7 @@ class _DetailFacilityState extends State<DetailFacility> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.6),
+                                color: Colors.black.withAlpha(153),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -189,7 +191,7 @@ class _DetailFacilityState extends State<DetailFacility> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.1),
+                              color: Colors.blue.withAlpha(25),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -238,7 +240,7 @@ class _DetailFacilityState extends State<DetailFacility> {
                                   canCopy: true,
                                 ),
                               ),
-                              if (widget.facility.email != null) ...[
+                              if (widget.facility.email != null && widget.facility.email!.isNotEmpty) ...[
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: _buildInfoSection(
@@ -265,13 +267,13 @@ class _DetailFacilityState extends State<DetailFacility> {
                                   Colors.orange,
                                 ),
                               ),
-                              if (widget.facility.hospitalType != null || widget.facility.pharmacyType != null) ...[
+                              if (widget.facility.hospitalType != null) ...[
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: _buildInfoSection(
                                     'Type',
                                     widget.facility.facilityType == 'hospital' ? Icons.local_hospital : Icons.medical_services,
-                                    widget.facility.hospitalType ?? widget.facility.pharmacyType ?? 'Not specified',
+                                    widget.facility.hospitalType ?? 'Not specified',
                                     Colors.teal,
                                   ),
                                 ),
@@ -289,7 +291,7 @@ class _DetailFacilityState extends State<DetailFacility> {
                               decoration: BoxDecoration(
                                 color: Colors.blue.shade50,
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.blue.shade200!),
+                                border: Border.all(color: Colors.blue.shade200),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,7 +315,7 @@ class _DetailFacilityState extends State<DetailFacility> {
                                           vertical: 4,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.blue.withOpacity(0.1),
+                                          color: Colors.blue.withAlpha(25),
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                         child: Text(
@@ -376,7 +378,7 @@ class _DetailFacilityState extends State<DetailFacility> {
                       color: Colors.white,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withValues(alpha: 0.1),
                           offset: const Offset(0, -1),
                           blurRadius: 4,
                         ),
@@ -450,7 +452,7 @@ class _DetailFacilityState extends State<DetailFacility> {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withAlpha(25),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: color, size: 20),
@@ -505,17 +507,9 @@ class _DetailFacilityState extends State<DetailFacility> {
     );
   }
 
-  Widget _buildDefaultAvatar() {
-    return Icon(
-      Icons.local_hospital,
-      size: 40,
-      color: Colors.grey[600],
-    );
-  }
-
   void _makePhoneCall() {
     // In a real app, you would use url_launcher to make a phone call
-    print('Calling ${widget.facility.phoneNumber}');
+    debugPrint('Calling ${widget.facility.phoneNumber}');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Calling ${widget.facility.phoneNumber}'),
@@ -526,7 +520,7 @@ class _DetailFacilityState extends State<DetailFacility> {
 
   void _getDirections() {
     // In a real app, you would use url_launcher to open maps
-    print('Getting directions to ${widget.facility.location}');
+    debugPrint('Getting directions to ${widget.facility.location}');
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Opening directions in maps...'),
@@ -537,7 +531,7 @@ class _DetailFacilityState extends State<DetailFacility> {
 
   void _bookAppointment() {
     // In a real app, you would navigate to booking page
-    print('Booking appointment at ${widget.facility.name}');
+    debugPrint('Booking appointment at ${widget.facility.name}');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Booking appointment at ${widget.facility.name}...'),
