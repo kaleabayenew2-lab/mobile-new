@@ -272,7 +272,7 @@ class _DisplayMapState extends State<DisplayMap> {
     return Container(
       color: Colors.white,
       child: Column(
-        mainAxisSize: MainAxisSize.max,
+        mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.45,
