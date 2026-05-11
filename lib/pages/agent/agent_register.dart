@@ -234,10 +234,11 @@ class _AgentRegisterPageState extends State<AgentRegisterPage>
         SliverPadding(
           padding: const EdgeInsets.all(16),
           sliver: SliverList(
-            delegate: SliverChildListDelegate([
+            delegate: SliverChildListDelegate.fixed([
               Form(
                 key: _formKey,
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Personal Information Section
