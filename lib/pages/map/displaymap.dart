@@ -382,7 +382,7 @@ class _DisplayMapState extends State<DisplayMap> {
               ),
             ),
           ),
-          Expanded(
+          Flexible(
             child: widget.facilities.isEmpty
                 ? const Center(child: Text('No facilities found'))
                 : ListView.builder(
