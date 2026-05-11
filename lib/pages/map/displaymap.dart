@@ -30,7 +30,9 @@ class _DisplayMapState extends State<DisplayMap> {
   void initState() {
     super.initState();
     _mapController = MapController();
-    _updateMarkers();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateMarkers();
+    });
   }
 
   @override
@@ -270,6 +272,7 @@ class _DisplayMapState extends State<DisplayMap> {
     return Container(
       color: Colors.white,
       child: Column(
+        mainAxisSize: MainAxisSize.max,
         children: [
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.45,

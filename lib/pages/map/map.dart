@@ -29,12 +29,16 @@ class _MapPageState extends State<MapPage> {
     _initializeFacilities();
   }
 
-  void _initializeFacilities() async {
+  void _initializeFacilities() {
     setState(() {
       _isLoading = true;
       _hasError = false;
     });
     
+    _loadFacilities();
+  }
+
+  Future<void> _loadFacilities() async {
     try {
       final facilitiesData = await HomeApi.getFacilities();
       
@@ -117,7 +121,11 @@ class _MapPageState extends State<MapPage> {
     _sortFacilitiesByDistance();
   }
 
-  void _getCurrentLocation() async {
+  void _getCurrentLocation() {
+    _loadUserLocation();
+  }
+
+  Future<void> _loadUserLocation() async {
     try {
       final position = await LocationService.getCurrentPosition();
       if (position != null) {
