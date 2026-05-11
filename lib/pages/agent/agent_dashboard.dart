@@ -60,22 +60,12 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Agent Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min, // Add this to prevent infinite height
-          children: [
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min, // Add this to prevent infinite height
+        children: [
             // Welcome Section
             Text(
               'Welcome back, ${widget.agentName}!',
@@ -220,7 +210,6 @@ class _AgentDashboardPageState extends State<AgentDashboardPage> {
             ),
           ],
         ),
-      ),
     );
   }
 

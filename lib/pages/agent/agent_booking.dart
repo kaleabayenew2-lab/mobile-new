@@ -50,20 +50,8 @@ class _AgentBookingPageState extends State<AgentBookingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bookings'),
-        backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshBookings,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
+    return Column(
+      children: [
           // Filter Chips
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -127,8 +115,7 @@ class _AgentBookingPageState extends State<AgentBookingPage> {
                   ),
           ),
         ],
-      ),
-    );
+      );
   }
 
   List<Map<String, dynamic>> get _filteredBookings {

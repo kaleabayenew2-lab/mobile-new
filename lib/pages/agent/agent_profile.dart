@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_service.dart';
+
 class AgentProfilePage extends StatefulWidget {
   const AgentProfilePage({super.key});
 
@@ -34,7 +36,8 @@ class _AgentProfilePageState extends State<AgentProfilePage> {
   Future<void> _loadProfileData() async {
     try {
       // Load actual profile data from API
-      final profile = await AuthService.getProfile();
+      final authService = AuthService();
+      final profile = await authService.getAgentProfile();
       if (profile != null) {
         setState(() {
           _agentId = profile['id'] ?? '';
@@ -112,21 +115,11 @@ class _AgentProfilePageState extends State<AgentProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Agent Profile'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: _editProfile,
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
             // Profile Header
             Center(
               child: Column(
@@ -339,7 +332,6 @@ class _AgentProfilePageState extends State<AgentProfilePage> {
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -369,14 +361,5 @@ class _AgentProfilePageState extends State<AgentProfilePage> {
         ],
       ),
     );
-  }
-}
-
-// Placeholder AuthService class - you should replace this with your actual implementation
-class AuthService {
-  static Future<Map<String, dynamic>?> getProfile() async {
-    // Return null to trigger sample data loading
-    // Replace with your actual API call
-    return null;
   }
 }

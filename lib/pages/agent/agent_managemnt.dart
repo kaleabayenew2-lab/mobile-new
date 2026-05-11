@@ -58,22 +58,8 @@ class _AgentManagementPageState extends State<AgentManagementPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Management'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _addNewTask,
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshTasks,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
+    return Column(
+      children: [
           // Stats Cards
           Container(
             padding: const EdgeInsets.all(16),
@@ -160,8 +146,7 @@ class _AgentManagementPageState extends State<AgentManagementPage> {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 
   List<Map<String, dynamic>> get _filteredTasks {

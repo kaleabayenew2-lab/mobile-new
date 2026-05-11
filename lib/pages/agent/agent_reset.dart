@@ -241,27 +241,26 @@ class _AgentResetPageState extends State<AgentResetPage> {
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 16),
-
-                  if (!_otpVerified)
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _verifyOTP,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                    if (!_otpVerified)
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _verifyOTP,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
+                          child: _isLoading
+                              ? const CircularProgressIndicator()
+                              : const Text('Verify OTP', style: TextStyle(fontSize: 16)),
                         ),
-                        child: _isLoading
-                            ? const CircularProgressIndicator()
-                            : const Text('Verify OTP', style: TextStyle(fontSize: 16)),
                       ),
-                    ),
-                ],
+                  ],
 
-                // New Password Fields
-                if (_otpVerified) ...[
+                  // New Password Fields
+                  if (_otpVerified) ...[
                   const SizedBox(height: 24),
                   const Text(
                     'Enter your new password:',
