@@ -35,32 +35,27 @@ class _AgentProfilePageState extends State<AgentProfilePage> {
 
   Future<void> _loadProfileData() async {
     try {
-      // Load actual profile data from API
+      // Load actual profile data from AuthService
       final authService = AuthService();
-      final profile = await authService.getAgentProfile();
+      final profile = authService.currentUser;
       if (profile != null) {
         setState(() {
           _agentId = profile['id'] ?? '';
           _agentName = profile['name'] ?? '';
           _agentEmail = profile['email'] ?? '';
-          _agentUsername = profile['username'] ?? '';
           _agentPhone = profile['phone'] ?? '';
-          _agentType = profile['type'] ?? '';
-          _agentAddress = profile['address'] ?? '';
-          _agentOpeningHours = profile['openingHours'] ?? '';
-          _agentOwnership = profile['ownership'] ?? '';
-          _agentIsEmergency = profile['isEmergency'] ?? false;
-          _agentLatitude = profile['latitude']?.toString() ?? '';
-          _agentLongitude = profile['longitude']?.toString() ?? '';
-          _agentNotes = profile['notes'] ?? '';
-          _agentServices = List<String>.from(profile['services'] ?? []);
-          _profileImageUrl = profile['profileImage'] ?? '';
-          _galleryImages = List<String>.from(profile['galleryImages'] ?? []);
+          _facilityName = profile['name'] ?? ''; // Use name as facility name
+          _facilityType = profile['type'] ?? '';
+          _isLoading = false;
         });
       } else {
-        // Load sample data if no profile exists
         _loadSampleData();
       }
+    } catch (e) {
+      debugPrint('Error loading profile: $e');
+      _loadSampleData();
+    }
+  }
     } catch (e) {
       debugPrint('Error loading profile: $e');
       _loadSampleData();
