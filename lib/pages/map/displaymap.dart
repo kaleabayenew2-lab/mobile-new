@@ -379,7 +379,8 @@ class _DisplayMapState extends State<DisplayMap> {
               ),
             ),
           ),
-          Expanded(
+          Container(
+            height: 400, // or MediaQuery.of(context).size.height * 0.5
             child: widget.facilities.isEmpty
                 ? const Center(child: Text('No facilities found'))
                 : ListView.builder(
