@@ -20,9 +20,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<FacilityItem> facilities = [];
+  List<FacilityItem> displayFacilities = [];
   Position? _currentPosition;
   bool _isLoading = false;
   bool _hasError = false;
+    String _searchQuery = '';
+  String _filterString = '';
 
   @override
   void initState() {
@@ -31,7 +34,7 @@ class _HomePageState extends State<HomePage> {
     _initializeFacilities();
   }
 
-  void _initializeFacilities() async {
+  Future<void> _initializeFacilities() async {
     setState(() {
       _isLoading = true;
       _hasError = false;
@@ -129,13 +132,145 @@ class _HomePageState extends State<HomePage> {
     });
     
     _sortFacilitiesByDistance();
+    
+    // Initialize displayFacilities with all facilities for search
+    displayFacilities = List.from(facilities);
   }
 
-  void _retryLoadFacilities() {
-    _initializeFacilities();
+  Future<void> _retryLoadFacilities() async {
+    await _initializeFacilities();
   }
 
-  
+  void _applyFilters() {
+    if (_filterString.isEmpty) {
+      displayFacilities = List.from(facilities);
+      return;
+    }
+
+    // Parse filter string
+    final filters = _filterString.split(', ');
+    String distanceFilter = 'All';
+    String statusFilter = 'All';
+    String emergencyFilter = 'All';
+    String serviceFilter = 'All';
+
+    for (final filter in filters) {
+      if (filter.startsWith('Distance:')) {
+        distanceFilter = filter.substring(9); // Remove 'Distance: '
+      } else if (filter.startsWith('Status:')) {
+        statusFilter = filter.substring(8); // Remove 'Status: '
+      } else if (filter.startsWith('Emergency:')) {
+        emergencyFilter = filter.substring(11); // Remove 'Emergency: '
+      } else if (filter.startsWith('Service:')) {
+        serviceFilter = filter.substring(9); // Remove 'Service: '
+      }
+    }
+
+    // Apply filters to facilities
+    setState(() {
+      displayFacilities = facilities.where((facility) {
+        // Distance filter
+        bool distanceMatch = distanceFilter == 'All';
+        if (distanceFilter != 'All') {
+          final distance = double.tryParse(facility.distance.replaceAll(RegExp(r'[^0-9.]'), ''));
+          if (distance != null) {
+            switch (distanceFilter) {
+              case 'Within 1km':
+                distanceMatch = distance <= 1.0;
+                break;
+              case 'Within 5km':
+                distanceMatch = distance <= 5.0;
+                break;
+              case 'Within 10km':
+                distanceMatch = distance <= 10.0;
+                break;
+            }
+          }
+        }
+
+        // Status filter
+        bool statusMatch = statusFilter == 'All';
+        if (statusFilter != 'All') {
+          if (statusFilter == 'Open Now') {
+            statusMatch = facility.openingHours?.toLowerCase().contains('24/7') ?? false;
+          } else if (statusFilter == '24/7') {
+            statusMatch = facility.openingHours?.toLowerCase().contains('24/7') ?? false;
+          } else if (statusFilter == 'Closed') {
+            statusMatch = !(facility.openingHours?.toLowerCase().contains('24/7') ?? true);
+          }
+        }
+
+        // Emergency filter
+        bool emergencyMatch = emergencyFilter == 'All';
+        if (emergencyFilter != 'All') {
+          if (emergencyFilter == 'Emergency Available') {
+            emergencyMatch = facility.services?.any((service) => 
+              service.toLowerCase().contains('emergency')) ?? false;
+          } else if (emergencyFilter == 'No Emergency') {
+            emergencyMatch = !(facility.services?.any((service) => 
+              service.toLowerCase().contains('emergency')) ?? true);
+          }
+        }
+
+        // Service filter
+        bool serviceMatch = serviceFilter == 'All';
+        if (serviceFilter != 'All') {
+          if (serviceFilter == 'General') {
+            serviceMatch = true; // All facilities are general
+          } else if (serviceFilter == 'Specialized') {
+            serviceMatch = facility.services?.any((service) => 
+              ['specialized', 'specialty', 'expert'].contains(service.toLowerCase())) ?? false;
+          } else if (serviceFilter == 'Emergency') {
+            serviceMatch = facility.services?.any((service) => 
+              service.toLowerCase().contains('emergency')) ?? false;
+          }
+        }
+
+        return distanceMatch && statusMatch && emergencyMatch && serviceMatch;
+      }).toList();
+    });
+  }
+
+  void _searchFacilities(String query) {
+    setState(() {
+      _searchQuery = query.toLowerCase().trim();
+      
+      if (_searchQuery.isEmpty) {
+        displayFacilities = List.from(facilities);
+      } else {
+        displayFacilities = facilities.where((facility) {
+          // Search by name - more robust matching
+          final facilityName = facility.name.toLowerCase();
+          final nameMatch = facilityName.contains(_searchQuery) || 
+                           facilityName.startsWith(_searchQuery);
+          
+          // Search by phone number
+          final phoneMatch = facility.phoneNumber.toLowerCase().contains(_searchQuery);
+          
+          // Search by location
+          final locationMatch = facility.location.toLowerCase().contains(_searchQuery);
+          
+          // Search by facility type
+          final typeMatch = facility.facilityType.toLowerCase().contains(_searchQuery);
+          
+          // Search by hospital type if available
+          final hospitalTypeMatch = facility.hospitalType?.toLowerCase().contains(_searchQuery) ?? false;
+          
+          // Search by pharmacy type if available
+          final pharmacyTypeMatch = facility.pharmacyType?.toLowerCase().contains(_searchQuery) ?? false;
+          
+          // Search by services if available
+          final servicesMatch = facility.services?.any((service) => 
+            service.toLowerCase().contains(_searchQuery)) ?? false;
+          
+          // Return true if any field matches
+          return nameMatch || phoneMatch || locationMatch || typeMatch || 
+                 hospitalTypeMatch || pharmacyTypeMatch || servicesMatch;
+        }).toList();
+      }
+    });
+  }
+
   void _getCurrentLocation() async {
     try {
       final position = await LocationService.getCurrentPosition();
@@ -257,14 +392,18 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         children: [
           MiniHeader(
-            onSearch: (query) {
-              // Handle search functionality
-            },
+            onSearch: _searchFacilities,
             onFilter: () {
               // Handle filter functionality
             },
             onLocation: () {
               // Handle location functionality
+            },
+            onFilterChanged: (filterString) {
+              setState(() {
+                _filterString = filterString;
+                _applyFilters();
+              });
             },
             currentLocation: _currentPosition != null 
                 ? 'Current Location'
@@ -279,7 +418,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 20),
           Facility(
-            facilities: facilities,
+            facilities: displayFacilities,
             maxItems: 5,
             isLoading: _isLoading,
             hasError: _hasError,

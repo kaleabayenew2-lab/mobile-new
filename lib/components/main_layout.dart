@@ -5,12 +5,11 @@ import 'footer.dart';
 import 'sidebar.dart';
 import '../pages/map/map.dart';
 import '../pages/profile/profile.dart';
-import '../pages/favorite/favorite.dart';
+import '../pages/favorites/favorites.dart';
 import '../pages/emergency/emergency.dart';
 import '../pages/setting/setting.dart';
 import '../pages/agent/agent.dart';
-import '../pages/auth/login.dart';
-import '../pages/auth/register.dart';
+// Login and register pages removed from sidebar
 import '../pages/booking/booking.dart';
 import '../pages/privacy/privacy.dart';
 import '../pages/about/about.dart';
@@ -51,6 +50,7 @@ class _MainLayoutState extends State<MainLayout> {
       ),
     ];
 
+    // 🔥 FIX: Use current auth state to conditionally add Profile
     if (_authService.isLoggedIn) {
       items.add(
         SidebarItem(
@@ -65,7 +65,7 @@ class _MainLayoutState extends State<MainLayout> {
       SidebarItem(
         icon: Icons.favorite,
         title: 'Favorites',
-        onTap: () => _navigateToPage(const FavoritePage()),
+        onTap: () => _navigateToPage(const FavoritesPage()),
       ),
       SidebarItem(
         icon: Icons.emergency,
@@ -104,21 +104,6 @@ class _MainLayoutState extends State<MainLayout> {
       ),
     ]);
 
-    if (!_authService.isLoggedIn) {
-      items.addAll([
-        SidebarItem(
-          icon: Icons.login,
-          title: 'Login',
-          onTap: () => _navigateToPage(const LoginPage()),
-        ),
-        SidebarItem(
-          icon: Icons.app_registration,
-          title: 'Register',
-          onTap: () => _navigateToPage(const RegisterPage()),
-        ),
-      ]);
-    }
-
     return items;
   }
 
@@ -133,63 +118,80 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   void _closeSidebar() {
-    setState(() {
-      _isSidebarOpen = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isSidebarOpen = false;
+      });
+    }
   }
 
   void _navigateToPage(Widget page) {
     _closeSidebar();
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => page),
-    );
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => page),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isLargeScreen = constraints.maxWidth >= 700;
+    return AnimatedBuilder(
+      animation: _authService,
+      builder: (context, child) {
+        // 🔥 FIX: Force rebuild of sidebar items when auth state changes
+        final sidebarItems = _buildSidebarItems();
+        final isLoggedIn = _authService.isLoggedIn;
+        
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final isLargeScreen = constraints.maxWidth >= 700;
 
-        return Scaffold(
-          key: _scaffoldKey,
-          drawer: isLargeScreen
-              ? null
-              : Drawer(
-                  child: Sidebar(
-                    isOpen: true,
-                    isDrawer: true,
-                    onClose: () => Navigator.of(context).pop(),
-                    items: _buildSidebarItems(),
-                  ),
-                ),
-          body: Row(
-            children: [
-              if (isLargeScreen)
-                Sidebar(
-                  isOpen: _isSidebarOpen,
-                  onClose: _closeSidebar,
-                  items: _buildSidebarItems(),
-                ),
-              Expanded(
-                child: Column(
-                  children: [
-                    Header(
-                      title: widget.title,
-                      onMenuTap: () => _toggleSidebar(isLargeScreen),
-                      onLoginTap: () => _navigateToPage(const LoginPage()),
-                      onRegisterTap: () => _navigateToPage(const RegisterPage()),
-                    ),
-                    Expanded(
-                      child: ScrollAwareFooter(
-                        child: widget.child,
+            return Scaffold(
+              key: _scaffoldKey,
+              drawer: isLargeScreen
+                  ? null
+                  : Drawer(
+                      child: Sidebar(
+                        isOpen: true,
+                        isDrawer: true,
+                        onClose: () {
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        items: sidebarItems,
                       ),
                     ),
-                  ],
-                ),
+              body: Row(
+                children: [
+                  if (isLargeScreen)
+                    Sidebar(
+                      isOpen: _isSidebarOpen,
+                      onClose: _closeSidebar,
+                      items: sidebarItems,
+                    ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        // 🔥 CRITICAL FIX: Add ValueKey to force Header rebuild on auth change
+                        Header(
+                          key: ValueKey('header_${isLoggedIn ? 'loggedin' : 'loggedout'}'),
+                          title: widget.title,
+                          onMenuTap: () => _toggleSidebar(isLargeScreen),
+                        ),
+                        Expanded(
+                          child: ScrollAwareFooter(
+                            child: widget.child,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

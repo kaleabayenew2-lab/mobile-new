@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../components/main_layout.dart';
+import '../../components/footer.dart';
+import '../../components/error_boundary.dart';
 import '../home/facility.dart';
 
 class EmergencyPage extends StatefulWidget {
@@ -12,12 +14,16 @@ class EmergencyPage extends StatefulWidget {
 class _EmergencyPageState extends State<EmergencyPage> {
   final TextEditingController _searchController = TextEditingController();
   bool _openNowOnly = false;
-  late final List<FacilityItem> _allFacilities;
+  late List<FacilityItem> _allFacilities;
   List<FacilityItem> _filteredFacilities = [];
 
   @override
   void initState() {
     super.initState();
+    _initializeFacilities();
+  }
+
+  void _initializeFacilities() {
     _allFacilities = [
       FacilityItem(
         name: 'St. Mary Emergency Center',
@@ -70,7 +76,6 @@ class _EmergencyPageState extends State<EmergencyPage> {
         openingHours: '09:00 - 20:00',
       ),
     ];
-
     _applyFilters();
   }
 
@@ -84,7 +89,8 @@ class _EmergencyPageState extends State<EmergencyPage> {
             facility.facilityType.toLowerCase().contains(query);
 
         final matchesOpenNow = !_openNowOnly ||
-            (facility.openingHours != null && facility.openingHours!.toLowerCase().contains('24/7'));
+            (facility.openingHours != null && 
+             facility.openingHours!.toLowerCase().contains('24/7'));
 
         return matchesQuery && matchesOpenNow;
       }).toList();
@@ -97,120 +103,506 @@ class _EmergencyPageState extends State<EmergencyPage> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return MainLayout(
-      title: 'Emergency',
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+  void _showFacilityDetails(BuildContext context, FacilityItem facility) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Emergency Services',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Search for nearby emergency facilities and filter by open now.',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search facilities',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onSubmitted: (_) => _applyFilters(),
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.red[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.local_hospital,
+                    color: Colors.red[600],
+                    size: 24,
                   ),
                 ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: _applyFilters,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        facility.name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        facility.facilityType,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: facility.openingHours != null && facility.openingHours!.toLowerCase().contains('24/7') 
+                        ? Colors.green[100] 
+                        : Colors.orange[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    facility.openingHours != null && facility.openingHours!.toLowerCase().contains('24/7') 
+                        ? 'Open 24/7' 
+                        : 'Limited Hours',
+                    style: TextStyle(
+                      color: facility.openingHours != null && facility.openingHours!.toLowerCase().contains('24/7') 
+                          ? Colors.green[700] 
+                          : Colors.orange[700],
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  child: const Text('Search'),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
+            
+            const SizedBox(height: 20),
+            
+            _DetailRow(icon: Icons.location_on, text: facility.location),
+            _DetailRow(icon: Icons.phone, text: facility.phoneNumber),
+            _DetailRow(icon: Icons.access_time, text: facility.openingHours ?? 'Hours not specified'),
+            _DetailRow(icon: Icons.directions, text: facility.distance),
+            
+            const SizedBox(height: 20),
+            
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red[600],
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: const Text('Call Now'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.blue[400]!),
+                    ),
+                    child: Text(
+                      'Get Directions',
+                      style: TextStyle(color: Colors.blue[600]),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _callFacility(String phoneNumber) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Calling $phoneNumber...'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ErrorBoundary(
+      enableLogging: true,
+      fallbackMessage: 'Emergency page encountered an error',
+      child: MainLayout(
+        title: 'Emergency Services',
+        child: ScrollAwareFooter(
+          child: Column(
+            children: [
+              // Stats Section
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                margin: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.red[600]!, Colors.red[400]!],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
                   children: [
-                    const Expanded(
-                      child: Text(
-                        'Show only open facilities',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    const Text(
+                      'Emergency Services Nearby',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Switch(
-                      value: _openNowOnly,
-                      onChanged: (value) {
-                        setState(() {
-                          _openNowOnly = value;
-                        });
-                        _applyFilters();
-                      },
-                      activeThumbColor: Colors.blue,
-                      activeTrackColor: const Color.fromRGBO(33, 150, 243, 0.3),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _StatItem(
+                          count: _allFacilities.length,
+                          label: 'Total',
+                          icon: Icons.medical_services,
+                        ),
+                        _StatItem(
+                          count: _allFacilities.where((f) => f.facilityType == 'Hospital').length,
+                          label: 'Hospitals',
+                          icon: Icons.local_hospital,
+                        ),
+                        _StatItem(
+                          count: _allFacilities.where((f) => f.facilityType == 'Pharmacy').length,
+                          label: 'Pharmacies',
+                          icon: Icons.medical_information,
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 18),
-            Expanded(
-              child: SingleChildScrollView(
-                child: _filteredFacilities.isEmpty
-                    ? const Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.search_off, size: 48, color: Colors.grey),
-                          SizedBox(height: 12),
-                          Text(
-                            'No emergency facilities found',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
+              
+              const SizedBox(height: 16),
+              
+              // Search and Filter Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Search Row
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withValues(alpha: 0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              controller: _searchController,
+                              decoration: InputDecoration(
+                                hintText: 'Search by name, location, or type',
+                                hintStyle: TextStyle(color: Colors.grey[400]),
+                                prefixIcon: const Icon(Icons.search, color: Colors.red),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              onSubmitted: (_) => _applyFilters(),
+                            ),
                           ),
-                          SizedBox(height: 6),
-                          Text(
-                            'Try a different search or disable the open-now filter.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: _applyFilters,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red[600],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
                           ),
-                        ],
+                          child: const Text('Search', style: TextStyle(fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Filter Card
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    )
-                    : ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _filteredFacilities.length,
-                        separatorBuilder: (context, index) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final facility = _filteredFacilities[index];
-                          return _EmergencyFacilityCard(facility: facility);
-                        },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: Row(
+                          children: [
+                            Icon(Icons.filter_alt, color: Colors.red[600], size: 20),
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Text(
+                                'Show only facilities open 24/7',
+                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                            Switch(
+                              value: _openNowOnly,
+                              onChanged: (value) {
+                                setState(() {
+                                  _openNowOnly = value;
+                                });
+                                _applyFilters();
+                              },
+                              activeThumbColor: Colors.red[600],
+                              activeTrackColor: Colors.red[100],
+                            ),
+                          ],
+                        ),
                       ),
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Results count
+                    Text(
+                      '${_filteredFacilities.length} facilities found',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Emergency Facilities List
+                    ..._filteredFacilities.map((facility) => _EmergencyFacilityCard(
+                      facility: facility,
+                      onTap: () => _showFacilityDetails(context, facility),
+                      onCall: () => _callFacility(facility.phoneNumber),
+                    )),
+                    
+                    if (_filteredFacilities.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(40),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.medical_services,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No emergency facilities found',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Try adjusting your search or filter',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final int count;
+  final String label;
+  final IconData icon;
+
+  const _StatItem({
+    required this.count,
+    required this.label,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(
+          icon,
+          color: Colors.white,
+          size: 28,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          count.toString(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EmergencyFacilityCard extends StatelessWidget {
+  final FacilityItem facility;
+  final VoidCallback onTap;
+  final VoidCallback onCall;
+
+  const _EmergencyFacilityCard({
+    required this.facility,
+    required this.onTap,
+    required this.onCall,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isOpen247 = facility.openingHours != null && 
+                           facility.openingHours!.toLowerCase().contains('24/7');
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(16),
+        leading: Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: Colors.red[50],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            Icons.local_hospital,
+            color: Colors.red[600],
+            size: 24,
+          ),
+        ),
+        title: Text(
+          facility.name,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(
+              facility.location,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(Icons.access_time, color: Colors.grey[400], size: 14),
+                const SizedBox(width: 4),
+                Text(
+                  facility.openingHours ?? 'Hours not specified',
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Icon(Icons.directions, color: Colors.grey[400], size: 14),
+                const SizedBox(width: 4),
+                Text(
+                  facility.distance,
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isOpen247 ? Colors.green[100] : Colors.orange[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    isOpen247 ? '24/7' : 'Limited',
+                    style: TextStyle(
+                      color: isOpen247 ? Colors.green[700] : Colors.orange[700],
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.info_outline, color: Colors.blue),
+              onPressed: onTap,
+            ),
+            IconButton(
+              icon: const Icon(Icons.phone, color: Colors.green),
+              onPressed: onCall,
             ),
           ],
         ),
@@ -219,138 +611,33 @@ class _EmergencyPageState extends State<EmergencyPage> {
   }
 }
 
-class _EmergencyFacilityCard extends StatelessWidget {
-  final FacilityItem facility;
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String text;
 
-  const _EmergencyFacilityCard({
-    required this.facility,
+  const _DetailRow({
+    required this.icon,
+    required this.text,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: const [
-          BoxShadow(
-            color: Color.fromRGBO(128, 128, 128, 0.08),
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      facility.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      facility.location,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
+          Icon(icon, size: 20, color: Colors.grey[600]),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 14,
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: facility.openingHours != null && facility.openingHours!.toLowerCase().contains('24/7')
-                      ? Colors.green.shade50
-                      : Colors.orange.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  facility.openingHours ?? 'Hours unknown',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: facility.openingHours != null && facility.openingHours!.toLowerCase().contains('24/7')
-                        ? Colors.green.shade700
-                        : Colors.orange.shade700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                const Icon(Icons.directions_walk, size: 16, color: Colors.grey),
-                const SizedBox(width: 6),
-                Text(
-                  facility.distance,
-                  style: const TextStyle(fontSize: 13, color: Colors.grey),
-                ),
-                const SizedBox(width: 16),
-                const Icon(Icons.phone, size: 16, color: Colors.grey),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    facility.phoneNumber,
-                    style: const TextStyle(fontSize: 13, color: Colors.grey),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
             ),
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _EmergencyTag(label: facility.facilityType),
-              _EmergencyTag(label: facility.openingHours ?? 'Hours TBD'),
-            ],
-          ),
         ],
-      ),
-    );
-  }
-}
-
-class _EmergencyTag extends StatelessWidget {
-  final String label;
-
-  const _EmergencyTag({
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: Colors.blue.shade700,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
       ),
     );
   }

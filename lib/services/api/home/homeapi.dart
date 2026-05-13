@@ -66,17 +66,25 @@ class HomeApi {
   // Search facilities
   static Future<List<Map<String, dynamic>>> searchFacilities(String query) async {
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Mock search functionality
-      final allFacilities = await getFacilities();
-      return allFacilities.where((facility) {
-        final name = facility['name'].toString().toLowerCase();
-        final type = facility['type'].toString().toLowerCase();
-        final searchQuery = query.toLowerCase();
-        return name.contains(searchQuery) || type.contains(searchQuery);
-      }).toList();
+      final response = await http.get(
+        Uri.parse('$_searchEndpoint?q=${Uri.encodeComponent(query)}'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        
+        if (data['success'] == true) {
+          final List<dynamic> facilitiesData = data['facilities'] ?? [];
+          return facilitiesData.cast<Map<String, dynamic>>();
+        } else {
+          throw Exception(data['message'] ?? 'Failed to search facilities');
+        }
+      } else {
+        throw Exception('Failed to search facilities: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Failed to search facilities: $e');
     }

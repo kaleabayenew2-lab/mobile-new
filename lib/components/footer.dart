@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ScrollAwareFooter extends StatefulWidget {
   final String? copyright;
@@ -38,7 +39,6 @@ class _ScrollAwareFooterState extends State<ScrollAwareFooter> {
       final maxScroll = _scrollController.position.maxScrollExtent;
       final currentScroll = _scrollController.position.pixels;
       
-      // Show footer when user is within 100 pixels of the bottom
       final shouldShowFooter = maxScroll - currentScroll < 100;
       
       if (shouldShowFooter != _showFooter) {
@@ -53,19 +53,16 @@ class _ScrollAwareFooterState extends State<ScrollAwareFooter> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Main content
         SingleChildScrollView(
           controller: _scrollController,
           child: Column(
             children: [
               widget.child,
-              // Add some padding at the bottom to ensure footer can appear
               const SizedBox(height: 200),
             ],
           ),
         ),
         
-        // Footer that appears when scrolled to bottom
         Positioned(
           bottom: 0,
           left: 0,
@@ -98,50 +95,10 @@ class Footer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Quick navigation actions
-    final quickActions = [
-      _QuickActionButton(
-        icon: Icons.home,
-        text: 'Home',
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Navigating to Home...')),
-          );
-        },
-      ),
-      _QuickActionButton(
-        icon: Icons.map,
-        text: 'Map',
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Opening Map...')),
-          );
-        },
-      ),
-      _QuickActionButton(
-        icon: Icons.favorite,
-        text: 'Favorites',
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Opening Favorites...')),
-          );
-        },
-      ),
-      _QuickActionButton(
-        icon: Icons.settings,
-        text: 'Settings',
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Opening Settings...')),
-          );
-        },
-      ),
-    ];
-
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: Colors.grey[100],
         border: Border(
           top: BorderSide(color: Colors.grey[300]!),
         ),
@@ -156,116 +113,175 @@ class Footer extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Main footer content with two sections
+          // Contact Us Title
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Left side - Contact Information
+              Icon(Icons.contact_mail, color: Colors.blue[700], size: 22),
+              const SizedBox(width: 8),
+              Text(
+                'Contact Us',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[700],
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Row 1: Email and Phone side by side
+          Row(
+            children: [
+              // Email
               Expanded(
-                flex: 1,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Contact Us',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[700],
+                child: InkWell(
+                  onTap: () async {
+                    final Uri emailUri = Uri(
+                      scheme: 'mailto',
+                      path: 'kaleabayenew519@gmail.com',
+                    );
+                    if (await canLaunchUrl(emailUri)) {
+                      await launchUrl(emailUri);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.email, color: Colors.teal[600], size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'kaleabayenew519@gmail.com',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.teal[600],
+                              decoration: TextDecoration.underline,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      _ContactItem(
-                        icon: Icons.phone,
-                        text: '+251 123 456 789',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Calling +251 123 456 789')),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 4),
-                      _ContactItem(
-                        icon: Icons.email,
-                        text: 'info@findmed.com',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Opening email client...')),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 4),
-                      _ContactItem(
-                        icon: Icons.location_on,
-                        text: 'Addis Ababa, Ethiopia',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Showing location on map...')),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 4),
-                      _ContactItem(
-                        icon: Icons.facebook,
-                        text: 'FindMed Ethiopia',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Opening Facebook page...')),
-                          );
-                        },
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-              
-              const SizedBox(width: 16),
-              
-              // Right side - Quick Actions & Navigation
+              const SizedBox(width: 12),
+              // Phone 1
               Expanded(
-                flex: 1,
+                child: InkWell(
+                  onTap: () async {
+                    final Uri phoneUri = Uri(
+                      scheme: 'tel',
+                      path: '+251909095880',
+                    );
+                    if (await canLaunchUrl(phoneUri)) {
+                      await launchUrl(phoneUri);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.phone, color: Colors.green[600], size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          '+251909095880',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.green[600],
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Row 2: Second Phone and Location side by side
+          Row(
+            children: [
+              // Phone 2
+              Expanded(
+                child: InkWell(
+                  onTap: () async {
+                    final Uri phoneUri = Uri(
+                      scheme: 'tel',
+                      path: '+251709095880',
+                    );
+                    if (await canLaunchUrl(phoneUri)) {
+                      await launchUrl(phoneUri);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.phone, color: Colors.green[600], size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          '+251709095880',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.green[600],
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Location
+              Expanded(
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    border: Border.all(color: Colors.grey[300]!),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Quick Navigation',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[700],
+                      Icon(Icons.location_on, color: Colors.orange[600], size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Gondar Maraki, Ethiopia',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.orange[600],
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: quickActions,
                       ),
                     ],
                   ),
@@ -274,37 +290,36 @@ class Footer extends StatelessWidget {
             ],
           ),
           
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           
-          // App info section
+          // Row 3: Availability (full width)
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
             decoration: BoxDecoration(
-              color: Colors.blue[50],
+              color: Colors.white,
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
             ),
-            child: Column(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                  'FindMed - Your Healthcare Companion',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-                const SizedBox(height: 4),
+                Icon(Icons.access_time, color: Colors.purple[600], size: 18),
+                const SizedBox(width: 8),
                 Text(
-                  'Find hospitals, pharmacies, and medical services near you',
+                  '24/7 Available - Always Ready to Help',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+                    fontSize: 13,
+                    color: Colors.purple[600],
+                    fontWeight: FontWeight.w500,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ],
             ),
           ),
+          
+          const SizedBox(height: 20),
+          
+          const Divider(height: 1, color: Colors.grey),
           
           const SizedBox(height: 12),
           
@@ -316,19 +331,15 @@ class Footer extends StatelessWidget {
                 copyright ?? '© 2024 FindMed. All rights reserved.',
                 style: TextStyle(
                   color: Colors.grey[600],
-                  fontSize: 12,
+                  fontSize: 11,
                 ),
               ),
-              Text(
-                'Version 1.0.0',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 12,
-                ),
-              ),
+              if (actions != null) ...actions!,
             ],
           ),
-          const SizedBox(height: 4),
+          
+          const SizedBox(height: 8),
+          
           Center(
             child: Text(
               'Made with ❤️ in Ethiopia',
@@ -338,96 +349,9 @@ class Footer extends StatelessWidget {
               ),
             ),
           ),
+          
+          const SizedBox(height: 8),
         ],
-      ),
-    );
-  }
-}
-
-class _ContactItem extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  final VoidCallback onTap;
-
-  const _ContactItem({
-    required this.icon,
-    required this.text,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(4),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 14,
-              color: Colors.blue[700],
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                text,
-                style: TextStyle(
-                  color: Colors.grey[700],
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _QuickActionButton extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  final VoidCallback onTap;
-
-  const _QuickActionButton({
-    required this.icon,
-    required this.text,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.blue[300]!),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: Colors.blue[700],
-            ),
-            const SizedBox(height: 2),
-            Text(
-              text,
-              style: TextStyle(
-                color: Colors.blue[700],
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
       ),
     );
   }

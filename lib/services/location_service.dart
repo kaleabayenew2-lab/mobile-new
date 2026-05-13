@@ -13,6 +13,29 @@ class LocationService {
   static bool get isMobile => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
   static bool get isDesktop => !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
 
+  // Check if location services are enabled on device
+  static Future<bool> isLocationServiceEnabled() async {
+    if (isDesktop) return true;
+    return await Geolocator.isLocationServiceEnabled();
+  }
+
+  // Request location permission and handle all cases
+  static Future<bool> requestLocationPermission() async {
+    if (isDesktop) return true;
+    
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return false;
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      return false;
+    }
+    return true;
+  }
+
   Future<bool> _handleLocationPermission() async {
     // Skip permission checks on desktop
     if (isDesktop) {
@@ -64,12 +87,19 @@ class LocationService {
         return await _getMockLocationString();
       }
 
+      // Check if location services are enabled first
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        debugPrint('Location services are disabled');
+        return null;
+      }
+
       // Check connection status first
       final connectionService = ConnectionService();
       final isOnline = await connectionService.checkConnection();
       
       if (!isOnline) {
-        return 'Location Unavailable';
+        return 'Location Unavailable (Offline)';
       }
 
       final hasPermission = await _handleLocationPermission();
@@ -111,15 +141,12 @@ class LocationService {
 
   // Mock location string for desktop development
   Future<String?> _getMockLocationString() async {
-    // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 500));
     
-    // Use custom mock location if set, otherwise default
     if (customMockLocationString != null) {
       return customMockLocationString;
     }
     
-    // Return a mock location (you can change this)
     return 'San Francisco, CA, USA';
   }
 
@@ -131,13 +158,18 @@ class LocationService {
   // Instance method to get Position object
   Future<Position?> getCurrentPositionInstance() async {
     try {
-      // Desktop development - return mock position
       if (isDesktop && kDebugMode) {
         debugPrint('📍 Using mock position for desktop development');
         return _getMockPosition();
       }
 
-      // Mobile - get real position
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        debugPrint('Location services are disabled');
+        return null;
+      }
+
       final hasPermission = await _handleLocationPermission();
       if (!hasPermission) return null;
 
@@ -155,13 +187,12 @@ class LocationService {
 
   // Mock Position for desktop development
   Position _getMockPosition() {
-    // Use custom mock position if set, otherwise default
     if (customMockPosition != null) {
       return customMockPosition!;
     }
     
     return Position(
-      latitude: 37.7749,    // San Francisco (change to your test city)
+      latitude: 37.7749,
       longitude: -122.4194,
       timestamp: DateTime.now(),
       accuracy: 100.0,

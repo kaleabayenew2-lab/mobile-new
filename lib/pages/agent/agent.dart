@@ -78,6 +78,7 @@ class _AgentPageState extends State<AgentPage> with TickerProviderStateMixin {
         return AgentRegisterPage(
           onLoginSuccess: _handleLoginSuccess,
           onSwitchToLogin: _switchToLogin,
+          useScaffold: false,
         );
       case 'reset':
         return AgentResetPage(

@@ -70,12 +70,12 @@ class FacilityItem {
 
 class Facility extends StatefulWidget {
   final List<FacilityItem> facilities;
-  final String? moreButtonText;
-  final String? lessButtonText;
   final int maxItems;
   final bool isLoading;
   final bool hasError;
   final VoidCallback? onRetry;
+  final String? moreButtonText;
+  final String? lessButtonText;
 
   const Facility({
     super.key,
@@ -97,6 +97,7 @@ class _FacilityState extends State<Facility> {
 
   @override
   Widget build(BuildContext context) {
+    // Use the facilities passed from home page (already filtered)
     final displayFacilities = _showAll 
         ? widget.facilities 
         : widget.facilities.take(widget.maxItems).toList();

@@ -27,7 +27,10 @@ class ConnectionService {
       // In production, you would check actual internet connectivity
       return true;
     } catch (e) {
-      print('Connection check error: $e');
+      // Use debugPrint for development logging instead of print
+      if (kDebugMode) {
+        debugPrint('Connection check error: $e');
+      }
       return false;
     }
   }

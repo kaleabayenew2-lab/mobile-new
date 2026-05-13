@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/api/profile/profileadd_api.dart';
 import '../../services/auth_service.dart';
+import '../../components/error_boundary.dart';
 
 class ProfileAddPage extends StatefulWidget {
   const ProfileAddPage({super.key});
@@ -133,7 +134,7 @@ class _ProfileAddPageState extends State<ProfileAddPage> {
   }
 
   void _saveFacility() async {
-    if (!_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
@@ -230,210 +231,241 @@ class _ProfileAddPageState extends State<ProfileAddPage> {
     final authService = AuthService();
     final isLoggedIn = authService.isLoggedIn;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Saved Facilities'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        actions: [
-          if (!_isEditing)
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: _toggleEditMode,
-            ),
-          if (_isEditing)
-            IconButton(
-              icon: const Icon(Icons.cancel),
-              onPressed: _toggleEditMode,
-            ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : isLoggedIn
-              ? Column(
-                  children: [
-                    // Saved Facilities List
-                    Expanded(
-                      child: _savedFacilities.isEmpty
-                          ? const Center(
-                              child: Text(
-                                'No saved facilities yet',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: _savedFacilities.length,
-                              itemBuilder: (context, index) {
-                                final facility = _savedFacilities[index];
-                                return Card(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  elevation: 1,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
+    return ErrorBoundary(
+      enableLogging: true,
+      fallbackMessage: 'Profile page encountered an error',
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Saved Facilities'),
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          actions: [
+            if (!_isEditing)
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: _toggleEditMode,
+              ),
+            if (_isEditing)
+              IconButton(
+                icon: const Icon(Icons.cancel),
+                onPressed: _toggleEditMode,
+              ),
+          ],
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : isLoggedIn
+                ? Column(
+                    children: [
+                      // Saved Facilities List
+                      Expanded(
+                        child: _savedFacilities.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'No saved facilities yet',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey,
                                   ),
-                                  child: ListTile(
-                                    title: Text(
-                                      facility['name'] ?? 'Unknown Facility',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                ),
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.all(16),
+                                itemCount: _savedFacilities.length,
+                                itemBuilder: (context, index) {
+                                  final facility = _savedFacilities[index];
+                                  return Card(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    elevation: 1,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    subtitle: Text(
-                                      '${facility['address'] ?? 'No address'} • ${facility['type'] ?? 'No type'}',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey,
+                                    child: ListTile(
+                                      title: Text(
+                                        facility['name'] ?? 'Unknown Facility',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          '⭐ ${facility['rating'] ?? '0.0'}',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.orange,
+                                      subtitle: Text(
+                                        '${facility['address'] ?? 'No address'} • ${facility['type'] ?? 'No type'}',
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            '⭐ ${facility['rating'] ?? '0.0'}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.orange,
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        IconButton(
-                                          icon: const Icon(Icons.info),
-                                          onPressed: () => _showFacilityDetails(facility),
-                                        ),
-                                      ],
+                                          const SizedBox(width: 8),
+                                          IconButton(
+                                            icon: const Icon(Icons.info),
+                                            onPressed: () => _showFacilityDetails(facility),
+                                          ),
+                                        ],
+                                      ),
+                                      onTap: () {
+                                        // Navigate to facility details or edit
+                                      },
                                     ),
-                                    onTap: () {
-                                      // Navigate to facility details or edit
+                                  );
+                                },
+                              ),
+                      ),
+
+                      // Add Facility Form (when editing)
+                      if (_isEditing) ...[
+                        const SizedBox(height: 20),
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Add New Facility',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Facility Name
+                                  TextFormField(
+                                    controller: _facilityNameController,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Facility Name',
+                                      prefixIcon: Icon(Icons.local_hospital),
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please enter facility name';
+                                      }
+                                      return null;
                                     },
                                   ),
-                                );
-                              },
-                            ),
-                    ),
+                                  const SizedBox(height: 16),
 
-                    // Add Facility Form (when editing)
-                    if (_isEditing) ...[
-                      const SizedBox(height: 20),
-                      Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Add New Facility',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Facility Name
-                              TextFormField(
-                                controller: _facilityNameController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Facility Name',
-                                  prefixIcon: Icon(Icons.local_hospital),
-                                  border: OutlineInputBorder(),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Facility Address
-                              TextFormField(
-                                controller: _facilityAddressController,
-                                maxLines: 3,
-                                decoration: const InputDecoration(
-                                  labelText: 'Address',
-                                  prefixIcon: Icon(Icons.location_on),
-                                  border: OutlineInputBorder(),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Facility Phone
-                              TextFormField(
-                                controller: _facilityPhoneController,
-                                keyboardType: TextInputType.phone,
-                                decoration: const InputDecoration(
-                                  labelText: 'Phone Number',
-                                  prefixText: '+251 ',
-                                  prefixIcon: Icon(Icons.phone),
-                                  border: OutlineInputBorder(),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Facility Type
-                              TextFormField(
-                                controller: _facilityTypeController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Facility Type',
-                                  prefixIcon: Icon(Icons.category),
-                                  border: OutlineInputBorder(),
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-
-                              // Action Buttons
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: OutlinedButton(
-                                      onPressed: _toggleEditMode,
-                                      style: OutlinedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(vertical: 16),
-                                        side: const BorderSide(color: Colors.grey),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      child: const Text('Cancel'),
+                                  // Facility Address
+                                  TextFormField(
+                                    controller: _facilityAddressController,
+                                    maxLines: 3,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Address',
+                                      prefixIcon: Icon(Icons.location_on),
+                                      border: OutlineInputBorder(),
                                     ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please enter address';
+                                      }
+                                      return null;
+                                    },
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      onPressed: _saveFacility,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue,
-                                        padding: const EdgeInsets.symmetric(vertical: 16),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
+                                  const SizedBox(height: 16),
+
+                                  // Facility Phone
+                                  TextFormField(
+                                    controller: _facilityPhoneController,
+                                    keyboardType: TextInputType.phone,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Phone Number',
+                                      prefixText: '+251 ',
+                                      prefixIcon: Icon(Icons.phone),
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please enter phone number';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Facility Type
+                                  TextFormField(
+                                    controller: _facilityTypeController,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Facility Type',
+                                      prefixIcon: Icon(Icons.category),
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please enter facility type';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 24),
+
+                                  // Action Buttons
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: OutlinedButton(
+                                          onPressed: _toggleEditMode,
+                                          style: OutlinedButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(vertical: 16),
+                                            side: const BorderSide(color: Colors.grey),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          child: const Text('Cancel'),
                                         ),
                                       ),
-                                      child: const Text('Save Facility'),
-                                    ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          onPressed: _saveFacility,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.blue,
+                                            padding: const EdgeInsets.symmetric(vertical: 16),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          child: const Text('Save Facility'),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
-                )
-              : const Center(
-                  child: Text(
-                    'Please login to view saved facilities',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
+                  )
+                : const Center(
+                    child: Text(
+                      'Please login to view saved facilities',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
                     ),
                   ),
-                  ),
-                );
+      ),
+    );
   }
 }
