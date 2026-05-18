@@ -10,7 +10,9 @@ import '../../utils/encryption.dart';
 import '../../components/main_layout.dart';
 
 class MapPage extends StatefulWidget {
-  const MapPage({super.key});
+  final FacilityItem? initialFacility;
+
+  const MapPage({super.key, this.initialFacility});
 
   @override
   State<MapPage> createState() => _MapPageState();
@@ -30,6 +32,16 @@ class _MapPageState extends State<MapPage> {
   }
 
   void _initializeFacilities() async {
+    if (widget.initialFacility != null) {
+      setState(() {
+        facilities = [widget.initialFacility!];
+        _isLoading = false;
+        _hasError = false;
+      });
+      _updateFacilityDistances();
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _hasError = false;
@@ -42,17 +54,24 @@ class _MapPageState extends State<MapPage> {
       final facilitiesList = facilitiesData.asMap().entries.map((entry) {
         final data = entry.value;
         
-        // Parse coordinates from API response
-        final locationData = data['location'] is String 
-            ? json.decode(data['location']) 
-            : data['location'];
-        final coordinates = locationData['coordinates'] as List<dynamic>;
+        // Parse coordinates safely
+        double lat = 0.0;
+        double lng = 0.0;
+        try {
+          final raw = data['location'];
+          final locationData = raw is String ? json.decode(raw) : raw;
+          if (locationData != null && locationData['coordinates'] != null) {
+            lat = (locationData['coordinates'][1] as num).toDouble();
+            lng = (locationData['coordinates'][0] as num).toDouble();
+          }
+        } catch (_) {}
         
         // Parse services from API response
         List<String> services = [];
         if (data['services'] is String) {
-          services = (json.decode(data['services']) as List<dynamic>)
-              .cast<String>();
+          try {
+            services = (json.decode(data['services']) as List<dynamic>).cast<String>();
+          } catch (_) {}
         } else if (data['services'] is List) {
           services = (data['services'] as List<dynamic>).cast<String>();
         }
@@ -69,12 +88,13 @@ class _MapPageState extends State<MapPage> {
           openingHours: data['openingHours'] as String?,
           hospitalType: data['hospitalType'] as String?,
           pharmacyType: data['pharmacyType'] as String?,
+          viewsTotal: data['viewsTotal'] != null ? int.tryParse(data['viewsTotal'].toString()) : 0,
           onTap: () {
             // Handle facility tap
           },
           // Store coordinates for distance calculation
-          latitude: coordinates[1] as double,
-          longitude: coordinates[0] as double,
+          latitude: lat,
+          longitude: lng,
         );
       }).toList();
       
@@ -231,6 +251,7 @@ class _MapPageState extends State<MapPage> {
       child: DisplayMap(
         facilities: facilities,
         currentPosition: _currentPosition,
+        initialTarget: widget.initialFacility,
         onSearch: (query) {
           debugPrint('Search: $query');
         },

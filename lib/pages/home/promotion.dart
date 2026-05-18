@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+import '../../utils/network_url.dart';
+
 class PromotionSlide {
   final String imageUrl;
   final String title;
@@ -76,6 +78,32 @@ class _PromotionState extends State<Promotion> {
     });
   }
 
+  Widget _buildFallbackImage() {
+    return Container(
+      color: Colors.grey[300],
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.image,
+              size: 48,
+              color: Colors.grey[600],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Image not available',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.slides.isEmpty) {
@@ -103,41 +131,32 @@ class _PromotionState extends State<Promotion> {
             itemCount: widget.slides.length,
             itemBuilder: (context, index) {
               final slide = widget.slides[index];
+              final isNetworkImage = slide.imageUrl.startsWith('http') ||
+                                     slide.imageUrl.startsWith('/uploads') ||
+                                     slide.imageUrl.startsWith('uploads');
+              final fullImageUrl = resolveHostUrl(slide.imageUrl);
+
               return ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
                     // Background image
-                    Image.asset(
-                      slide.imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[300],
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.image,
-                                  size: 48,
-                                  color: Colors.grey[600],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Image not available',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
+                    isNetworkImage
+                        ? Image.network(
+                            fullImageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildFallbackImage();
+                            },
+                          )
+                        : Image.asset(
+                            slide.imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildFallbackImage();
+                            },
                           ),
-                        );
-                      },
-                    ),
                     // Gradient overlay for better text visibility
                     Container(
                       decoration: BoxDecoration(

@@ -59,6 +59,58 @@ class ResetPasswordApi {
     }
   }
 
+  static Future<Map<String, dynamic>> verifyResetOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/users/verify-reset-otp'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'otp': otp,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        try {
+          final responseData = jsonDecode(response.body);
+          return {
+            'success': true,
+            'message': responseData['message'] ?? 'OTP verified successfully',
+          };
+        } catch (e) {
+          return {
+            'success': false,
+            'message': 'Invalid response format from server',
+          };
+        }
+      } else {
+        try {
+          final errorData = jsonDecode(response.body);
+          return {
+            'success': false,
+            'message': errorData['message'] ?? 'OTP verification failed',
+          };
+        } catch (e) {
+          return {
+            'success': false,
+            'message': 'Server error: ${response.statusCode}',
+          };
+        }
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Network error: $e',
+      };
+    }
+  }
+
   static Future<Map<String, dynamic>> confirmPasswordReset({
     required String email,
     required String otp,

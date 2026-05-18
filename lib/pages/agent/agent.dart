@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../components/main_layout.dart';
+import '../../services/auth_service.dart';
 import 'agent_login.dart';
 import 'agent_register.dart';
 import 'agent_reset.dart';
@@ -16,10 +17,8 @@ class AgentPage extends StatefulWidget {
 }
 
 class _AgentPageState extends State<AgentPage> with TickerProviderStateMixin {
-  bool _isLoggedIn = false;
+  late final AuthService _authService;
   String _authMode = 'login'; // 'login', 'register', 'reset'
-  String _agentName = '';
-  String _agentType = '';
   
   late final TabController _tabController;
 
@@ -27,31 +26,38 @@ class _AgentPageState extends State<AgentPage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _authService = AuthService.instance;
+    _authService.addListener(_onAuthChanged);
   }
 
   @override
   void dispose() {
+    _authService.removeListener(_onAuthChanged);
     _tabController.dispose();
     super.dispose();
   }
 
+  void _onAuthChanged() {
+    if (mounted) {
+      setState(() {
+        if (!_authService.isAgentLoggedIn) {
+          _tabController.index = 0;
+          _authMode = 'login';
+        }
+      });
+    }
+  }
+
+  bool get _isLoggedIn => _authService.isAgentLoggedIn;
+
   void _handleLoginSuccess(String name, String type) {
     setState(() {
-      _isLoggedIn = true;
-      _agentName = name;
-      _agentType = type;
       _authMode = 'login';
     });
   }
 
   void _handleLogout() {
-    setState(() {
-      _isLoggedIn = false;
-      _tabController.index = 0;
-      _authMode = 'login';
-      _agentName = '';
-      _agentType = '';
-    });
+    _authService.logoutAgent();
   }
 
   void _switchToRegister() {
@@ -131,9 +137,10 @@ class _AgentPageState extends State<AgentPage> with TickerProviderStateMixin {
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      AgentDashboardPage(
-                        agentName: _agentName,
-                        agentType: _agentType,
+                       AgentDashboardPage(
+                        agentName: _authService.currentAgent?['name'] ?? '',
+                        agentType: _authService.currentAgent?['type'] ?? '',
+                        onLogout: _handleLogout,
                       ),
                       const AgentProfilePage(),
                       const AgentManagementPage(),

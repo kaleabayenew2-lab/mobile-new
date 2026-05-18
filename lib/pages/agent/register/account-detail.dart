@@ -1,5 +1,6 @@
 // lib/pages/agent/account-detail.dart
 import 'package:flutter/material.dart';
+import '../../../utils/validate-agent.dart';
 
 class AccountDetailSection extends StatefulWidget {
   final Function(Map<String, String>) onAccountDetailsChanged;
@@ -31,6 +32,9 @@ class _AccountDetailSectionState extends State<AccountDetailSection> {
     _passwordController.addListener(_notifyParent);
     _confirmPasswordController.addListener(_notifyParent);
     _emailController.addListener(_notifyParent);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _notifyParent();
+    });
   }
 
   @override
@@ -52,52 +56,14 @@ class _AccountDetailSectionState extends State<AccountDetailSection> {
   }
 
   // Validation methods
-  String? _validateUsername(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Username is required';
-    }
-    if (value.length < 4) {
-      return 'Username must be at least 4 characters';
-    }
-    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
-      return 'Username can only contain letters, numbers, and underscores';
-    }
-    return null;
-  }
+  String? _validateUsername(String? value) => AgentValidator.validateUsername(value);
 
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Password is required';
-    }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters';
-    }
-    if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(value)) {
-      return 'Password must contain both letters and numbers';
-    }
-    return null;
-  }
+  String? _validatePassword(String? value) => AgentValidator.validatePassword(value);
 
-  String? _validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please confirm your password';
-    }
-    if (value != _passwordController.text) {
-      return 'Passwords do not match';
-    }
-    return null;
-  }
+  String? _validateConfirmPassword(String? value) =>
+      AgentValidator.validateConfirmPassword(_passwordController.text, value);
 
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Email is required';
-    }
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value)) {
-      return 'Please enter a valid email address';
-    }
-    return null;
-  }
+  String? _validateEmail(String? value) => AgentValidator.validateEmail(value);
 
   // Form validation
   bool validateForm() {

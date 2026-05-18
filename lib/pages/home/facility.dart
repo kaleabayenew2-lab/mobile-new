@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../utils/network_url.dart';
 
 class FacilityItem {
+  final int? id;
+  final bool isFavorite;
   final String name;
   final String location;
   final String distance;
@@ -12,11 +15,15 @@ class FacilityItem {
   final String? openingHours;
   final String? hospitalType;
   final String? pharmacyType; // Added missing field
+  final List<String>? galleryImages;
   final double latitude;
   final double longitude;
+  final int? viewsTotal;
   final VoidCallback? onTap;
 
   FacilityItem({
+    this.id,
+    this.isFavorite = false,
     required this.name,
     required this.location,
     required this.distance,
@@ -30,10 +37,14 @@ class FacilityItem {
     this.openingHours,
     this.hospitalType,
     this.pharmacyType, // Added missing parameter
+    this.galleryImages,
+    this.viewsTotal = 0,
     this.onTap,
   });
 
   FacilityItem copyWith({
+    int? id,
+    bool? isFavorite,
     String? name,
     String? location,
     String? distance,
@@ -45,11 +56,15 @@ class FacilityItem {
     String? openingHours,
     String? hospitalType,
     String? pharmacyType, // Added missing parameter
+    List<String>? galleryImages,
     double? latitude,
     double? longitude,
+    int? viewsTotal,
     VoidCallback? onTap,
   }) {
     return FacilityItem(
+      id: id ?? this.id,
+      isFavorite: isFavorite ?? this.isFavorite,
       name: name ?? this.name,
       location: location ?? this.location,
       distance: distance ?? this.distance,
@@ -61,8 +76,10 @@ class FacilityItem {
       openingHours: openingHours ?? this.openingHours,
       hospitalType: hospitalType ?? this.hospitalType,
       pharmacyType: pharmacyType ?? this.pharmacyType, // Added missing field
+      galleryImages: galleryImages ?? this.galleryImages,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      viewsTotal: viewsTotal ?? this.viewsTotal,
       onTap: onTap ?? this.onTap,
     );
   }
@@ -292,6 +309,38 @@ class _FacilityCard extends StatelessWidget {
     required this.facility,
   });
 
+  bool _isNetworkImage(String imageUrl) {
+    return imageUrl.startsWith('http://') ||
+        imageUrl.startsWith('https://') ||
+        imageUrl.startsWith('//') ||
+        imageUrl.startsWith('/uploads/') ||
+        imageUrl.startsWith('uploads/');
+  }
+
+  String _normalizeImageUrl(String imageUrl) {
+    return resolveHostUrl(imageUrl);
+  }
+
+  Widget _buildProfileImage(String imageUrl) {
+    final normalizedUrl = _normalizeImageUrl(imageUrl);
+    if (_isNetworkImage(normalizedUrl)) {
+      return Image.network(
+        normalizedUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildDefaultAvatar();
+        },
+      );
+    }
+    return Image.asset(
+      normalizedUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return _buildDefaultAvatar();
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Determine which type to display (hospitalType or pharmacyType)
@@ -324,13 +373,7 @@ class _FacilityCard extends StatelessWidget {
                     height: 50,
                     color: Colors.grey.shade100,
                     child: facility.profileImage != null
-                        ? Image.asset(
-                            facility.profileImage!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _buildDefaultAvatar();
-                            },
-                          )
+                        ? _buildProfileImage(facility.profileImage!)
                         : _buildDefaultAvatar(),
                   ),
                 ),

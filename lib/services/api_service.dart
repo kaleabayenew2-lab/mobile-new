@@ -10,11 +10,16 @@ class ApiService {
     'Accept': 'application/json',
   };
 
-  static Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> data, {Map<String, String>? extraHeaders}) async {
     try {
+      final headers = {
+        ..._headers,
+        if (extraHeaders != null) ...extraHeaders,
+      };
+
       final response = await http.post(
         Uri.parse('$baseUrl$endpoint'),
-        headers: _headers,
+        headers: headers,
         body: jsonEncode(data),
       );
 
@@ -26,11 +31,57 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> get(String endpoint) async {
+  static Future<Map<String, dynamic>> put(String endpoint, Map<String, dynamic> data, {Map<String, String>? extraHeaders}) async {
     try {
+      final headers = {
+        ..._headers,
+        if (extraHeaders != null) ...extraHeaders,
+      };
+
+      final response = await http.put(
+        Uri.parse('$baseUrl$endpoint'),
+        headers: headers,
+        body: jsonEncode(data),
+      );
+
+      return _handleResponse(response);
+    } on SocketException catch (e) {
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    } catch (e) {
+      return {'success': false, 'message': 'Request failed: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> get(String endpoint, {Map<String, String>? extraHeaders}) async {
+    try {
+      final headers = {
+        ..._headers,
+        if (extraHeaders != null) ...extraHeaders,
+      };
+
       final response = await http.get(
         Uri.parse('$baseUrl$endpoint'),
-        headers: _headers,
+        headers: headers,
+      );
+
+      return _handleResponse(response);
+    } on SocketException catch (e) {
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    } catch (e) {
+      return {'success': false, 'message': 'Request failed: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> delete(String endpoint, {Map<String, String>? extraHeaders}) async {
+    try {
+      final headers = {
+        ..._headers,
+        if (extraHeaders != null) ...extraHeaders,
+      };
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl$endpoint'),
+        headers: headers,
       );
 
       return _handleResponse(response);

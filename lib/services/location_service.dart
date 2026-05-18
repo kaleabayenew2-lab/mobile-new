@@ -81,12 +81,6 @@ class LocationService {
   // Instance method
   Future<String?> getCurrentLocationInstance() async {
     try {
-      // Desktop development - return mock location
-      if (isDesktop && kDebugMode) {
-        debugPrint('📍 Using mock location for desktop development');
-        return await _getMockLocationString();
-      }
-
       // Check if location services are enabled first
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -139,17 +133,6 @@ class LocationService {
     }
   }
 
-  // Mock location string for desktop development
-  Future<String?> _getMockLocationString() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    
-    if (customMockLocationString != null) {
-      return customMockLocationString;
-    }
-    
-    return 'San Francisco, CA, USA';
-  }
-
   // Static method to get Position object
   static Future<Position?> getCurrentPosition() async {
     return LocationService().getCurrentPositionInstance();
@@ -158,11 +141,6 @@ class LocationService {
   // Instance method to get Position object
   Future<Position?> getCurrentPositionInstance() async {
     try {
-      if (isDesktop && kDebugMode) {
-        debugPrint('📍 Using mock position for desktop development');
-        return _getMockPosition();
-      }
-
       // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -186,45 +164,4 @@ class LocationService {
   }
 
   // Mock Position for desktop development
-  Position _getMockPosition() {
-    if (customMockPosition != null) {
-      return customMockPosition!;
-    }
-    
-    return Position(
-      latitude: 37.7749,
-      longitude: -122.4194,
-      timestamp: DateTime.now(),
-      accuracy: 100.0,
-      altitude: 0.0,
-      heading: 0.0,
-      speed: 0.0,
-      speedAccuracy: 0.0,
-      altitudeAccuracy: 100.0,
-      headingAccuracy: 0.0,
-    );
-  }
-
-  // Optional: Allow setting custom mock location for testing
-  static String? customMockLocationString;
-  static Position? customMockPosition;
-  
-  static void setMockLocationString(String location) {
-    customMockLocationString = location;
-  }
-  
-  static void setMockCoordinates(double latitude, double longitude) {
-    customMockPosition = Position(
-      latitude: latitude,
-      longitude: longitude,
-      timestamp: DateTime.now(),
-      accuracy: 100.0,
-      altitude: 0.0,
-      heading: 0.0,
-      speed: 0.0,
-      speedAccuracy: 0.0,
-      altitudeAccuracy: 100.0,
-      headingAccuracy: 0.0,
-    );
-  }
 }

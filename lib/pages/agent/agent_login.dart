@@ -26,12 +26,32 @@ class _AgentLoginPageState extends State<AgentLoginPage> {
 
   bool _isLoading = false;
   bool _rememberMe = false;
+  bool _obscurePassword = true;
+  String? _message;
+  bool _isSuccessMessage = false;
 
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    if (!mounted) return;
+    setState(() {
+      _message = message;
+      _isSuccessMessage = !isError;
+    });
+    
+    // Auto-hide the message after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted && _message == message) {
+        setState(() {
+          _message = null;
+        });
+      }
+    });
   }
 
   Future<void> _loginAgent() async {
@@ -52,29 +72,23 @@ class _AgentLoginPageState extends State<AgentLoginPage> {
           // Consider using secure storage for username/token persistence
         }
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login successful!')),
-          );
-        }
+        _showMessage('Login successful!');
 
         // Call login success callback
-        widget.onLoginSuccess('St. Peter Hospital', 'General Hospital');
+        final currentAgent = _authService.currentAgent;
+        widget.onLoginSuccess(
+          currentAgent?['name'] ?? 'Facility', 
+          currentAgent?['type'] ?? 'Hospital'
+        );
       } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result['message'] ?? 'Login failed')),
-          );
-        }
+        _showMessage(result['message'] ?? 'Login failed', isError: true);
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+      _showMessage('Error: $e', isError: true);
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -127,6 +141,47 @@ class _AgentLoginPageState extends State<AgentLoginPage> {
                   ),
                   const SizedBox(height: 48),
 
+                  // Message Display Area (Top of username)
+                  if (_message != null)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: _isSuccessMessage ? Colors.green.shade100 : Colors.red.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _isSuccessMessage ? Colors.green : Colors.red,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _isSuccessMessage ? Icons.check_circle : Icons.error,
+                            color: _isSuccessMessage ? Colors.green : Colors.red,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _message!,
+                              style: TextStyle(
+                                color: _isSuccessMessage ? Colors.green.shade800 : Colors.red.shade800,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 20),
+                            color: _isSuccessMessage ? Colors.green.shade800 : Colors.red.shade800,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () {
+                              setState(() => _message = null);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
                   // Username Field
                   TextFormField(
                     controller: _usernameController,
@@ -143,12 +198,23 @@ class _AgentLoginPageState extends State<AgentLoginPage> {
                   // Password Field
                   TextFormField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Password',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lock),
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.lock),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
                     ),
-                    obscureText: true,
+                    obscureText: _obscurePassword,
                     validator: (value) =>
                         value?.isEmpty ?? true ? 'Password is required' : null,
                   ),

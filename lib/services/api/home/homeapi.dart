@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../../../utils/network_url.dart';
 import 'dart:math' as math;
 
 class HomeApi {
   // API endpoints
-  static const String _baseUrl = 'http://127.0.0.1:5000';
-  static const String _facilitiesEndpoint = '$_baseUrl/api/facilities';
-  static const String _promotionsEndpoint = '$_baseUrl/api/promotions';
-  static const String _searchEndpoint = '$_baseUrl/api/search';
+  static final String _baseUrl = resolveHostUrl('http://127.0.0.1:5000');
+  static final String _facilitiesEndpoint = '$_baseUrl/api/facilities';
+  static final String _promotionsEndpoint = '$_baseUrl/api/promotions?active=true';
+  static final String _searchEndpoint = '$_baseUrl/api/search';
 
   // Get all facilities
   static Future<List<Map<String, dynamic>>> getFacilities() async {

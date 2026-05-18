@@ -65,16 +65,16 @@ class _PrivacyPageState extends State<PrivacyPage> {
         title: 'Privacy Policy',
         child: ScrollAwareFooter(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header Section
-                _PrivacyHeader(),
+                const _PrivacyHeader(),
                 const SizedBox(height: 16),
                 
                 // Privacy Content Sections
-                _PrivacySection(
+                const _PrivacySection(
                   title: 'Information We Collect',
                   icon: Icons.data_usage,
                   content: [
@@ -91,7 +91,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
                 ),
                 const SizedBox(height: 16),
                 
-                _PrivacySection(
+                const _PrivacySection(
                   title: 'How We Use Your Information',
                   icon: Icons.settings,
                   content: [
@@ -108,7 +108,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
                 ),
                 const SizedBox(height: 16),
                 
-                _PrivacySection(
+                const _PrivacySection(
                   title: 'Information Sharing',
                   icon: Icons.share,
                   content: [
@@ -124,7 +124,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
                 ),
                 const SizedBox(height: 16),
                 
-                _PrivacySection(
+                const _PrivacySection(
                   title: 'Data Security',
                   icon: Icons.security,
                   content: [
@@ -140,7 +140,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
                 ),
                 const SizedBox(height: 16),
                 
-                _PrivacySection(
+                const _PrivacySection(
                   title: 'Your Rights',
                   icon: Icons.gavel,
                   content: [
@@ -360,7 +360,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
                 const SizedBox(height: 32),
                 
                 // Last Updated Section
-                _LastUpdatedSection(),
+                const _LastUpdatedSection(),
               ],
             ),
           ),

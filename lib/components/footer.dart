@@ -39,7 +39,7 @@ class _ScrollAwareFooterState extends State<ScrollAwareFooter> {
       final maxScroll = _scrollController.position.maxScrollExtent;
       final currentScroll = _scrollController.position.pixels;
       
-      final shouldShowFooter = maxScroll - currentScroll < 100;
+      final shouldShowFooter = maxScroll - currentScroll < 300;
       
       if (shouldShowFooter != _showFooter) {
         setState(() {
@@ -58,7 +58,7 @@ class _ScrollAwareFooterState extends State<ScrollAwareFooter> {
           child: Column(
             children: [
               widget.child,
-              const SizedBox(height: 200),
+              const SizedBox(height: 450),
             ],
           ),
         ),

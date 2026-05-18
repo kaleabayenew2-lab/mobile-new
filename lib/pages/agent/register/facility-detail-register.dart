@@ -1,5 +1,6 @@
 // lib/pages/agent/facility-detail-register.dart
 import 'package:flutter/material.dart';
+import '../../../utils/validate-agent.dart';
 
 class FacilityDetailRegisterSection extends StatefulWidget {
   final String facilityType; // 'Hospital' or 'Pharmacy'
@@ -192,6 +193,9 @@ class _FacilityDetailRegisterSectionState extends State<FacilityDetailRegisterSe
     _addressController.addListener(_notifyParent);
     _phoneController.addListener(_notifyParent);
     _noteController.addListener(_notifyParent);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _notifyParent();
+    });
   }
 
   @override
@@ -291,51 +295,11 @@ class _FacilityDetailRegisterSectionState extends State<FacilityDetailRegisterSe
   }
 
   // Validation methods
-  String? _validateFacilityName(String? value) {
-    if (value == null || value.isEmpty) {
-      return '${widget.facilityType} name is required';
-    }
-    if (value.length < 3) {
-      return 'Name must be at least 3 characters';
-    }
-    return null;
-  }
+  String? _validateFacilityName(String? value) => AgentValidator.validateName(value);
 
-  String? _validateAddress(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Address is required';
-    }
-    if (value.length < 5) {
-      return 'Please enter a complete address';
-    }
-    return null;
-  }
+  String? _validateAddress(String? value) => AgentValidator.validateAddress(value);
 
-  String? _validatePhone(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Phone number is required';
-    }
-    
-    String cleaned = value.replaceAll(RegExp(r'[^0-9]'), '');
-    
-    if (cleaned.startsWith('251')) {
-      cleaned = cleaned.substring(3);
-    }
-    
-    if (cleaned.startsWith('0')) {
-      cleaned = cleaned.substring(1);
-    }
-    
-    if (cleaned.length != 9) {
-      return 'Phone number must be 9 digits after +251';
-    }
-    
-    if (!cleaned.startsWith('9') && !cleaned.startsWith('7')) {
-      return 'Phone number must start with 9 or 7';
-    }
-    
-    return null;
-  }
+  String? _validatePhone(String? value) => AgentValidator.validatePhone(value);
 
   // Form validation
   bool validateForm() {

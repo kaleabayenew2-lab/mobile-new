@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'api_service.dart';
+import 'notification_service.dart';
 
 /// User authentication state management service
 class AuthService extends ChangeNotifier {
@@ -16,6 +17,11 @@ class AuthService extends ChangeNotifier {
   String? _token;
   bool _isLoggedIn = false;
 
+  // Agent/Facility data
+  Map<String, dynamic>? _currentAgent;
+  String? _agentToken;
+  bool _isAgentLoggedIn = false;
+
   // Getters
   Map<String, dynamic>? get currentUser => _currentUser;
   String? get token => _token;
@@ -23,6 +29,11 @@ class AuthService extends ChangeNotifier {
   String? get userName => _currentUser?['fullName'];
   String? get userEmail => _currentUser?['email'];
   String? get userPhone => _currentUser?['phone'];
+  String? get userId => _currentUser?['id']?.toString();
+
+  Map<String, dynamic>? get currentAgent => _currentAgent;
+  String? get agentToken => _agentToken;
+  bool get isAgentLoggedIn => _isAgentLoggedIn;
 
   /// Set user as logged in
   void login(Map<String, dynamic> userData, String token) {
@@ -35,6 +46,9 @@ class AuthService extends ChangeNotifier {
     
     debugPrint('✅ User logged in: ${userData['fullName'] ?? userData['email']}');
     
+    // Reset notification service first run for new session
+    NotificationService.instance.resetFirstRun();
+
     // Notify listeners to update UI
     notifyListeners();
   }
@@ -52,6 +66,9 @@ class AuthService extends ChangeNotifier {
     
     debugPrint('✅ User logged out');
     
+    // Reset notifications
+    NotificationService.instance.resetFirstRun();
+
     // Only notify if state actually changed
     if (previousState != _isLoggedIn) {
       notifyListeners();
@@ -177,27 +194,48 @@ class AuthService extends ChangeNotifier {
   /// Agent authentication methods
   Future<Map<String, dynamic>> loginAgent(String username, String password) async {
     try {
-      final response = await ApiService.post('/users/login', {
-        'email': username, // Using email as username for now
+      final response = await ApiService.post('/agents/login', {
+        'username': username,
         'password': password,
       });
 
       if (response['success'] == true) {
-        // Store agent data
-        _currentUser = {
+        // Store all returned agent/facility fields in _currentAgent
+        _currentAgent = {
           'id': response['id'],
-          'username': username,
-          'name': response['fullName'],
-          'email': response['email'],
-          'phone': response['phone'],
-          'type': 'Agent',
-          'fullName': response['fullName'], // Add fullName for consistency
+          'agentId': response['agentId'],
+          'username': response['username'] ?? username,
+          'name': response['name'] ?? response['fullName'] ?? '',
+          'fullName': response['name'] ?? response['fullName'] ?? '',
+          'email': response['email'] ?? '',
+          'phone': response['phone'] ?? '',
+          'type': response['type'] ?? 'hospital',
+          'hospitalType': response['hospitalType'],
+          'pharmacyType': response['pharmacyType'],
+          'address': response['address'] ?? '',
+          'openingHours': response['openingHours'] ?? '',
+          'ownership': response['ownership'] ?? '',
+          'isEmergency': response['isEmergency'] ?? false,
+          'isActive': response['isActive'] ?? true,
+          'services': response['services'] ?? [],
+          'latitude': response['latitude'],
+          'longitude': response['longitude'],
+          'profileImage': response['profileImage'],
+          'averageRating': response['averageRating'] ?? 0.0,
+          'ratingCount': response['ratingCount'] ?? 0,
+          'viewsTotal': response['viewsTotal'] ?? 0,
+          'favoriteCount': response['favoriteCount'] ?? 0,
+          'createdAt': response['createdAt'],
         };
-        _isLoggedIn = true;
-        _token = response['token'];
+        _isAgentLoggedIn = true;
+        _agentToken = response['token'];
         
         _storeUserData();
-        notifyListeners(); // Ensure UI updates
+        
+        // Reset notifications for agent
+        NotificationService.instance.resetFirstRun();
+
+        notifyListeners();
         
         return {'success': true, 'message': 'Login successful'};
       } else {
@@ -213,32 +251,49 @@ class AuthService extends ChangeNotifier {
 
   Future<Map<String, dynamic>> registerAgent(Map<String, dynamic> agentData) async {
     try {
-      final response = await ApiService.post('/users/register', {
-        'fullName': agentData['name'],
-        'email': agentData['email'],
-        'password': agentData['password'],
-        'phone': agentData['phone'],
-        'username': agentData['username'],
-      });
+      final response = await ApiService.post('/agents/register', agentData);
 
       if (response['success'] == true) {
-        // Store agent data
-        _currentUser = {
+        // Store full agent data in _currentAgent
+        _currentAgent = {
           'id': response['id'],
+          'agentId': response['agentId'] ?? response['id']?.toString(),
           'username': agentData['username'],
           'name': agentData['name'],
-          'fullName': agentData['name'], // Add fullName for consistency
+          'fullName': agentData['name'],
           'email': agentData['email'],
           'phone': agentData['phone'],
-          'type': agentData['facilityType'],
+          'type': agentData['facility_type']?.toString().toLowerCase(),
+          'hospitalType': agentData['facility_type']?.toString().toLowerCase() == 'hospital' ? agentData['facility_sub_type'] : null,
+          'pharmacyType': agentData['facility_type']?.toString().toLowerCase() == 'pharmacy' ? agentData['facility_sub_type'] : null,
+          'address': agentData['address'] ?? '',
+          'openingHours': agentData['opening_hours'] ?? '',
+          'ownership': agentData['ownership'] ?? '',
+          'isEmergency': agentData['emergency_enabled'] ?? false,
+          'isActive': true,
+          'services': agentData['services'] ?? [],
+          'latitude': agentData['latitude'],
+          'longitude': agentData['longitude'],
+          'profileImage': agentData['profile_image'],
+          'galleryImages': agentData['gallery_images'] ?? [],
+          'notes': agentData['note'] ?? '',
+          'averageRating': 0.0,
+          'ratingCount': 0,
+          'viewsTotal': 0,
+          'favoriteCount': 0,
+          'createdAt': DateTime.now().toIso8601String(),
         };
-        _isLoggedIn = true;
-        _token = response['token'];
+        _isAgentLoggedIn = true;
+        _agentToken = response['token'];
         
         _storeUserData();
+        
+        // Reset notifications for agent
+        NotificationService.instance.resetFirstRun();
+
         notifyListeners(); // Ensure UI updates
         
-        return {'success': true, 'message': 'Registration successful'};
+        return {'success': true, 'message': 'Registration successful', 'data': response};
       } else {
         return {
           'success': false, 
@@ -250,17 +305,32 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  /// Set agent as logged out
+  void logoutAgent() {
+    final previousState = _isAgentLoggedIn;
+    
+    _currentAgent = null;
+    _agentToken = null;
+    _isAgentLoggedIn = false;
+    
+    _clearUserData();
+    
+    debugPrint('✅ Agent logged out');
+    
+    // Reset notifications
+    NotificationService.instance.resetFirstRun();
+
+    if (previousState != _isAgentLoggedIn) {
+      notifyListeners();
+    }
+  }
+
   Future<Map<String, dynamic>> sendPasswordResetOTP(String email) async {
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Mock OTP sending
-      if (email.isNotEmpty && email.contains('@')) {
-        return {'success': true, 'message': 'OTP sent successfully'};
-      } else {
-        return {'success': false, 'message': 'Invalid email address'};
-      }
+      final response = await ApiService.post('/agents/forgot-password', {
+        'email': email,
+      });
+      return response;
     } catch (e) {
       return {'success': false, 'message': 'Failed to send OTP: $e'};
     }
@@ -268,15 +338,11 @@ class AuthService extends ChangeNotifier {
 
   Future<Map<String, dynamic>> verifyOTP(String email, String otp) async {
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Mock OTP verification (accept any 6-digit code for demo)
-      if (email.isNotEmpty && otp.isNotEmpty && otp.length >= 4) {
-        return {'success': true, 'message': 'OTP verified successfully'};
-      } else {
-        return {'success': false, 'message': 'Invalid OTP'};
-      }
+      final response = await ApiService.post('/agents/verify-otp', {
+        'email': email,
+        'otp': otp,
+      });
+      return response;
     } catch (e) {
       return {'success': false, 'message': 'OTP verification failed: $e'};
     }
@@ -284,17 +350,88 @@ class AuthService extends ChangeNotifier {
 
   Future<Map<String, dynamic>> resetPassword(String email, String otp, String newPassword) async {
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Mock password reset
-      if (email.isNotEmpty && otp.isNotEmpty && newPassword.isNotEmpty && newPassword.length >= 6) {
-        return {'success': true, 'message': 'Password reset successful'};
-      } else {
-        return {'success': false, 'message': 'Password reset failed: Missing information or weak password'};
-      }
+      final response = await ApiService.post('/agents/reset-password', {
+        'email': email,
+        'otp': otp,
+        'newPassword': newPassword,
+      });
+      return response;
     } catch (e) {
       return {'success': false, 'message': 'Password reset failed: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateAgentProfile(Map<String, dynamic> updatedData) async {
+    try {
+      final response = await ApiService.put('/agents/profile', {
+        'id': _currentAgent?['id'],
+        ...updatedData,
+      });
+
+      if (response != null && response['success'] == true) {
+        final facility = response['facility'];
+        _currentAgent = {
+          'id': facility['id'],
+          'agentId': facility['agentId'],
+          'username': facility['username'],
+          'name': facility['name'] ?? facility['fullName'] ?? '',
+          'fullName': facility['name'] ?? facility['fullName'] ?? '',
+          'email': facility['email'] ?? '',
+          'phone': facility['phone'] ?? '',
+          'type': facility['type'] ?? 'hospital',
+          'hospitalType': facility['hospitalType'],
+          'pharmacyType': facility['pharmacyType'],
+          'address': facility['address'] ?? '',
+          'openingHours': facility['openingHours'] ?? '',
+          'ownership': facility['ownership'] ?? '',
+          'isEmergency': facility['isEmergency'] ?? false,
+          'isActive': facility['isActive'] ?? true,
+          'services': facility['services'] ?? [],
+          'latitude': facility['latitude'],
+          'longitude': facility['longitude'],
+          'profileImage': facility['profileImage'],
+          'averageRating': (facility['averageRating'] ?? 0.0).toDouble(),
+          'ratingCount': facility['ratingCount'] ?? 0,
+          'viewsTotal': facility['viewsTotal'] ?? 0,
+          'favoriteCount': facility['favoriteCount'] ?? 0,
+          'createdAt': facility['createdAt'],
+        };
+        _storeUserData();
+        notifyListeners();
+        return {'success': true, 'message': 'Profile updated successfully'};
+      } else {
+        return {'success': false, 'message': response?['message'] ?? 'Failed to update profile'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateAgentCredentials({
+    required String username,
+    required String currentPassword,
+    String? newPassword,
+  }) async {
+    try {
+      final response = await ApiService.put('/agents/change-credentials', {
+        'id': _currentAgent?['id'],
+        'username': username,
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      });
+
+      if (response != null && response['success'] == true) {
+        if (_currentAgent != null) {
+          _currentAgent!['username'] = response['username'] ?? username;
+          _storeUserData();
+          notifyListeners();
+        }
+        return {'success': true, 'message': response['message'] ?? 'Credentials updated successfully'};
+      } else {
+        return {'success': false, 'message': response?['message'] ?? 'Failed to update credentials'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
     }
   }
 }
