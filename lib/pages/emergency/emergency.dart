@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:convert';
 import '../../components/main_layout.dart';
 import '../../components/footer.dart';
 import '../../components/error_boundary.dart';
@@ -205,7 +206,6 @@ class _EmergencyPageState extends State<EmergencyPage> {
                         
                         // Fallback to parsing location JSON if direct lat/lng missing
                         if (lat == 0.0 && lng == 0.0 && facility['location'] != null) {
-                          import 'dart:convert';
                           final locData = json.decode(facility['location'].toString());
                           if (locData['coordinates'] != null) {
                             lng = double.parse(locData['coordinates'][0].toString());
